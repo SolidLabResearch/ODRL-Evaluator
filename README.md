@@ -31,7 +31,7 @@ Thus, if the user wants a faster evaluation and is sure that all checks are not 
 ## Running the ODRL Evaluator
 Following code shows how to run the ODRL Evaluator.
 ```ts
-import { ODRLEvaluator} from './ODRL-Evaluator'
+import { ODRLEvaluator} from 'odrl-evaluator'
 
 async function main(){
     const policy = [] // an ODRL policy, represented by a list of quads
@@ -82,7 +82,7 @@ E.g. running a local version of eye is more efficient than the JavaScript one.
 
 An example snippet to create a reasoner using a local version of EYE and run it
 ```ts
-import { ODRLN3Engine, Reasoner, EyeReasoner } from './ODRL-Evaluator'
+import { ODRLN3Engine, Reasoner, EyeReasoner } from 'odrl-evaluator'
 
 const input = [] // an ODRL policy, ODRL request and state of the world, represented by a list of quads
 
@@ -100,10 +100,10 @@ The default ODRL Engine uses under the hood [Notation3](https://w3c.github.io/N3
 
 It is  an extension of the [`ODRLN3Engine`](#ODRLN3Engine), has no constructor arguments and is configured in the following manner:
 - it uses the [eyereasoner](https://github.com/eyereasoner/eye-js), a distribution of EYE reasoner in the JavaScript ecosystem using Webassembly
-- it uses the notation rules located at [`ODRL-Evaluator/rules/simpleRules.n3`](../ODRL-Evaluator/rules/simpleRules.n3)
+- it uses the notation rules located at [`ODRL-Evaluator/rules/simpleRules.n3`](./src/rules/simpleRules.n3)
 
 ```ts
-import { ODRLEngine} from './ODRL-Evaluator'
+import { ODRLEngine} from 'odrl-evaluator'
 
 const input = [] // an ODRL policy, ODRL request and state of the world, represented by a list of quads
 
@@ -123,7 +123,7 @@ As it is an extension of the [`ODRLN3Engine`](#ODRLN3Engine) and thus an impleme
 
 Here is a snippet of how it is used:
 ```ts
-import { ODRLEngineMultipleSteps} from './ODRL-Evaluator'
+import { ODRLEngineMultipleSteps} from 'odrl-evaluator'
 
 const input = [] // an ODRL policy, ODRL request and state of the world, represented by a list of quads
 
@@ -131,3 +131,9 @@ const engine = new ODRLEngineMultipleSteps()
 
 const report = await engine.evaluate(input);
 ```
+
+## Feedback and questions
+
+Do not hesitate to [report a bug](https://github.com/SolidLabResearch/ODRL-Evaluator/issues).
+
+Further questions can also be asked to [Wout Slabbinck](mailto:wout.slabbinck@ugent.be) (developer and maintainer of this repository).
