@@ -1,0 +1,243 @@
+@prefix : <http://example.org/> .
+@prefix math: <http://www.w3.org/2000/10/swap/math#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix report: <http://example.com/report/temp/> .
+@prefix temp: <http://example.com/request/> .
+
+# Constraint report
+
+# Connect constraint to rule
+{ 
+    ?rule odrl:constraint ?constraint.
+    ?ruleReport report:rule ?rule .
+    ?premiseReport report:constraint ?constraint .
+} => { 
+    ?ruleReport report:premiseReport ?premiseReport .
+}.
+
+# Left Operand Conversion
+# odrl:dateTime to xsd:dateTime
+# https://www.w3.org/TR/odrl-vocab/#term-dateTime
+{
+    ?constraint odrl:leftOperand odrl:dateTime .
+    temp:currentTime dct:issued ?dateTime .
+    ( ?constraint ) :getUUID ?premiseReport .
+
+    # TODO: check whether rightoperand is xsd:dateTime
+
+} => { 
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?dateTime .
+}.
+# TODO: odrl:dateTime to xsd:date
+# https://www.w3.org/TR/odrl-vocab/#term-dateTime
+# TODO: check whether rightoperand is xsd:date
+
+# Operand
+# Less than: odrl:lt
+{ 
+    ?constraint 
+        odrl:operator odrl:lt ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand math:lessThan ?rightOperand .
+
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:lt ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+# Greater than: odrl:gt
+{ 
+    ?constraint 
+        odrl:operator odrl:gt ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand math:greaterThan ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:gt ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+# Equal to: odrl:eq
+# https://w3c.github.io/N3/reports/20230703/builtins.html#math:equalTo
+{ 
+    ?constraint 
+        odrl:operator odrl:eq ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand math:equalTo ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:eq ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+# Greater than or equal to: odrl:gteq
+# https://w3c.github.io/N3/reports/20230703/builtins.html#math:notLessThan
+{ 
+    ?constraint 
+        odrl:operator odrl:gteq ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand math:notLessThan ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:gteq ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+# Less than or equal to: odrl:lteq
+# https://w3c.github.io/N3/reports/20230703/builtins.html#math:notGreaterThan
+{ 
+    ?constraint 
+        odrl:operator odrl:lteq ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand math:notGreaterThan ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:lteq ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+# Not equal to: odrl:neq
+# https://w3c.github.io/N3/reports/20230703/builtins.html#math:notEqualTo
+{ 
+    ?constraint 
+        odrl:operator odrl:neq ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand math:notEqualTo ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:neq ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+# Logical operands
+
+{ 
+    # match and constraint
+    ?constraint a odrl:LogicalConstraint;
+        odrl:and ?otherConstraint .
+    # create uuid
+    ( ?constraint ) :getUUID ?logicalConstraintReportID .
+
+    # I think the below rule might be troublesome in the future (with uc policies having reports themselves)
+
+} => { 
+    ?logicalConstraintReportID a report:ConstraintReport .
+    ?logicalConstraintReportID report:constraint ?constraint .
+
+    # Again, I don't think I can do it without explanation
+    ?logicalConstraintReportID report:constraintLogicalOperand odrl:and  .
+}.
+
+# connect and constraint with other constraints
+{ 
+    ?logicalConstraintReportID a report:ConstraintReport .
+    ?logicalConstraintReportID report:constraint ?constraint .
+
+    ?constraint odrl:and ?otherConstraint.
+
+    ?otherConstraintReportID report:constraint ?otherConstraint.
+} => {
+    ?logicalConstraintReportID report:premiseReport ?otherConstraintReportID  .
+} .
+
+# Is and constraint report satisfied?
+{ 
+    ?logicalConstraintReportID a report:ConstraintReport ;
+        report:constraintLogicalOperand odrl:and .
+    
+    # check for number of constraint reports
+    (
+        ?template
+        {
+            ?logicalConstraintReportID report:premiseReport _:s 
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    ?L list:length ?numberConstraints .
+
+    # check for satisfied constraints
+    (
+        ?template
+        {
+            ?logicalConstraintReportID report:premiseReport ?premiseReport .
+            ?premiseReport report:satisfactionState report:Satisfied .
+        }
+        ?list
+    ) log:collectAllIn ?SCOPE .
+    ?list list:length ?satisfiedConstraints .
+    ?satisfiedConstraints log:equalTo ?numberConstraints .  
+    # TODO: when there are none satisfied, this is equal -> There is a need for other constraints to be unsatisfiable too (which is not the case yet) 
+} => { 
+    ?logicalConstraintReportID report:satisfactionState report:Satisfied  .
+
+}.
+{ 
+    ?logicalConstraintReportID a report:ConstraintReport ;
+        report:constraintLogicalOperand odrl:and .
+    
+    # check for number of constraint reports
+    (
+        ?template
+        {
+            ?logicalConstraintReportID report:premiseReport _:s 
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    ?L list:length ?numberConstraints .
+
+    # check for satisfied constraints
+    (
+        ?premiseReport
+        {
+            ?logicalConstraintReportID report:premiseReport ?premiseReport .
+            ?premiseReport report:satisfactionState report:Satisfied .
+        }
+        ?list
+    ) log:collectAllIn ?SCOPE .
+    ?list list:length ?satisfiedConstraints .
+    ?satisfiedConstraints log:notEqualTo ?numberConstraints .    
+} => { 
+    ?logicalConstraintReportID report:satisfactionState report:Unsatisfied  .
+}.

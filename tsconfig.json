@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      "incremental": true,
+      "typeRoots": [
+        "types",
+        "node_modules/@types"
+      ],
+      "esModuleInterop": true,
+      "declaration": true,
+      "inlineSources": true,
+      "newLine": "lf",
+      "outDir": "dist",
+      "preserveConstEnums": true,
+      "sourceMap": true,
+      "stripInternal": true
+    },
+    "include": [
+      "src"
+    ],
+    "exclude": [
+      "node_modules"
+    ]
+  }

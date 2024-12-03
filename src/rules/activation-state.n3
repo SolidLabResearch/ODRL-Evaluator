@@ -1,0 +1,90 @@
+@prefix : <http://example.org/> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix report: <http://example.com/report/temp/> .
+
+# check whether rule report is active
+{
+   ?ruleReport a ?ruleReportType ;
+       report:attemptState report:Attempted ;
+       report:rule ?rule ;
+       report:ruleRequest ?requestPermission .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+
+    # check for number of constraint reports
+   (
+       ?template
+       {
+           ?ruleReport report:premiseReport _:s 
+       }
+       ?L
+   ) log:collectAllIn ?SCOPE .
+   ?L list:length ?numberConstraints .
+
+    # check for satisfied constraints
+   (
+       ?premiseReport
+       {
+           ?ruleReport report:premiseReport ?premiseReport .
+           ?premiseReport report:satisfactionState report:Satisfied .
+       }
+       ?list
+   ) log:collectAllIn ?SCOPE .
+   ?list list:length ?satisfiedConstraints .
+   ?satisfiedConstraints log:equalTo ?numberConstraints .
+}
+=> 
+{
+   ?ruleReport report:activationState report:Active .
+} .
+{
+   ?ruleReport a ?ruleReportType ;
+       report:attemptState report:Attempted ;
+       report:rule ?rule ;
+       report:ruleRequest ?requestPermission .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+
+    # check for number of constraint reports
+   (
+       ?template
+       {
+           ?ruleReport report:premiseReport _:s 
+       }
+       ?L
+   ) log:collectAllIn ?SCOPE .
+   ?L list:length ?numberConstraints .
+
+    # check for satisfied constraints
+   (
+       ?premiseReport
+       {
+           ?ruleReport report:premiseReport ?premiseReport .
+           ?premiseReport report:satisfactionState report:Satisfied .
+       }
+       ?list
+   ) log:collectAllIn ?SCOPE .
+   ?list list:length ?satisfiedConstraints .
+   ?satisfiedConstraints log:notEqualTo ?numberConstraints .
+}
+=> 
+{
+   ?ruleReport report:activationState report:Inactive .
+} .
+
+# If premise reports don't have a satisfaction status -> they are unsatisfied
+{ 
+    ?report a ?premiseReport .
+    ?premiseReport list:in (report:TargetReport report:ConstraintReport report:PartyReport report:ActionReport ) .
+    (
+      ?template
+      {
+         ?report report:satisfactionState  _:s .
+      }
+      ?L
+   ) log:collectAllIn ?SCOPE .
+   ?L list:length ?satisfactionStateLength .
+   ?satisfactionStateLength log:equalTo 0 .
+} =>
+{
+    ?report report:satisfactionState report:Unsatisfied .
+} .

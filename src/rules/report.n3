@@ -1,0 +1,280 @@
+@prefix : <http://example.org/> .
+@prefix math: <http://www.w3.org/2000/10/swap/math#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix report: <http://example.com/report/temp/> .
+@prefix temp: <http://example.com/request/> .
+
+# Policy report
+{
+   ?policy a ?policyType .
+   ?policyType list:in ( odrl:Agreement odrl:Set odrl:Policy odrl:Offer ) .
+   ?policyRequest a odrl:Request .
+   temp:currentTime dct:issued ?time .
+   ( ?policy ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?urnUuid a report:PolicyReport ;
+       dct:created ?time ;
+       report:policy ?policy ;
+       report:policyRequest ?policyRequest .
+} .
+
+# Permission report (expecting explicit permission type)
+# create permission report
+{
+   ?policyReport a report:PolicyReport ;
+       report:policy ?policy ;
+       report:policyRequest ?policyRequest .
+   ?policy odrl:permission ?permission .
+   ?policyRequest odrl:permission ?requestPermission .
+   ( ?permission ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?policyReport report:ruleReport ?urnUuid .
+   ?urnUuid a report:PermissionReport ;
+       report:attemptState report:Attempted ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+} .
+
+# Prohibition report (expecting explicit prohibition type)
+# create prohibition report
+{
+   ?policyReport a report:PolicyReport ;
+       report:policy ?policy ;
+       report:policyRequest ?policyRequest .
+   ?policy odrl:prohibition ?prohibition .
+   ?policyRequest odrl:permission ?requestProhibition .
+   ( ?prohibition ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?policyReport report:ruleReport ?urnUuid .
+   ?urnUuid a report:ProhibitionReport ;
+       report:attemptState report:Attempted ;
+       report:rule ?prohibition ;
+       report:ruleRequest ?requestProhibition .
+} .
+
+# Target report
+# Create target report
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+   ?permission odrl:target ?resource .
+   
+   ( ?resource ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?ruleReport report:premiseReport ?urnUuid .
+   ?urnUuid a report:TargetReport .
+} .
+
+# Calculate satisfaction state (simple asset)
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission ;
+       report:premiseReport ?targetReport .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+
+   ?targetReport a report:TargetReport .
+
+   ?permission odrl:target ?resource .
+   ?requestPermission odrl:target ?requestedResource .
+
+   ?resource log:equalTo ?requestedResource .
+
+   # make sure not an asset collection
+   (
+      ?template
+      {
+         ?resource a odrl:AssetCollection .
+      }
+      ?L
+   ) log:collectAllIn ?SCOPE .
+   ?L list:length ?resourceCollectionsLength .
+   ?resourceCollectionsLength log:equalTo 0 .
+}
+=> 
+{
+   ?targetReport report:satisfactionState report:Satisfied .
+} .
+
+# Calculate satisfaction state (asset collection)
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission ;
+       report:premiseReport ?targetReport .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+
+   ?targetReport a report:TargetReport .     
+     
+   ?permission odrl:target ?iri .
+
+   ?iri a odrl:AssetCollection.
+   ?iri odrl:source ?assetCollection .
+
+   ?requestPermission odrl:target ?resourceInCollection .
+
+   ?resourceInCollection odrl:partOf ?assetCollection .
+}
+=> 
+{
+   ?targetReport report:satisfactionState report:Satisfied .
+} .
+# Party report
+# Create party report
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+   ?permission odrl:assignee ?party .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+
+   ( ?party ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?ruleReport report:premiseReport ?urnUuid .
+   ?urnUuid a report:PartyReport .
+} .
+# Calculate satisfaction state (simple party)
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission ;
+       report:premiseReport ?partyReport .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+   
+   ?partyReport a report:PartyReport .
+
+   ?permission odrl:assignee ?party .
+   ?requestPermission odrl:assignee ?requestedParty .
+
+   ?party log:equalTo ?requestedParty .
+   
+   # make sure not a party collection
+      (
+       ?template
+       {
+           ?party a odrl:PartyCollection .
+       }
+       ?L
+   ) log:collectAllIn ?SCOPE .
+   ?L list:length ?partyCollectionsLength .
+   ?partyCollectionsLength log:equalTo 0 .
+}
+=> 
+{
+   ?partyReport report:satisfactionState report:Satisfied .
+} .
+# Calculate satisfaction state (party collection)
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission ;
+       report:premiseReport ?partyReport .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+   
+   ?partyReport a report:PartyReport .
+
+   ?permission odrl:assignee ?iri .
+
+   ?iri a odrl:PartyCollection.
+   ?iri odrl:source ?partyCollection .
+
+   ?requestPermission odrl:assignee ?requestedParty .
+
+   ?requestedParty odrl:partOf ?partyCollection .
+}
+=> 
+{
+   ?partyReport report:satisfactionState report:Satisfied .
+} .
+
+# Action report -> simple action
+# Create action report
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+
+   ?permission odrl:action ?resource .
+   
+   ( ?resource ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?ruleReport report:premiseReport ?urnUuid .
+   ?urnUuid a report:ActionReport .
+} .
+# Calculate satisfaction state (simple action)
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission ;
+       report:premiseReport ?actionReport .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+
+   ?actionReport a report:ActionReport .
+
+   ?permission odrl:action ?action .
+   ?requestPermission odrl:action ?requestedAction .
+
+   ?action log:equalTo ?requestedAction .
+}
+=> 
+{
+   ?actionReport a report:ActionReport ;
+       report:satisfactionState report:Satisfied .
+} .
+# Calculate satisfaction state (included in)
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission ;
+       report:premiseReport ?actionReport .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+      
+   ?actionReport a report:ActionReport .
+
+   ?permission odrl:action ?action .
+   ?requestPermission odrl:action ?requestedAction .
+
+   ?requestedAction odrl:includedIn ?action .
+} => 
+{
+   ?actionReport a report:ActionReport ;
+       report:satisfactionState report:Satisfied .
+} .
+# Calculate satisfaction state (exact match)
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission ;
+       report:premiseReport ?actionReport .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+      
+   ?actionReport a report:ActionReport .
+
+   ?permission odrl:action ?action .
+   ?requestPermission odrl:action ?requestedAction .
+
+   ?requestedAction odrl:exactMatch ?action .
+} => 
+{
+   ?actionReport a report:ActionReport ;
+       report:satisfactionState report:Satisfied .
+} .

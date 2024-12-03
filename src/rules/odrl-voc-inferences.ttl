@@ -1,0 +1,34 @@
+@prefix cc: <http://creativecommons.org/ns#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+# Inferences about exact match cached (also contains symmetric property `odrl:includedIn`)
+odrl:modify skos:exactMatch odrl:append.
+odrl:modify skos:exactMatch odrl:appendTo.
+cc:Notice skos:exactMatch odrl:attachPolicy.
+cc:SourceCode skos:exactMatch odrl:attachSource.
+cc:CommercialUse skos:exactMatch odrl:commercialize.
+odrl:reproduce skos:exactMatch odrl:copy.
+odrl:transform skos:exactMatch odrl:export.
+odrl:grantUse skos:exactMatch odrl:license.
+odrl:compensate skos:exactMatch odrl:pay.
+odrl:compensatedParty skos:exactMatch odrl:payeeParty.
+cc:Sharing skos:exactMatch odrl:share.
+cc:ShareAlike skos:exactMatch odrl:shareAlike.
+odrl:modify skos:exactMatch odrl:write.
+odrl:modify skos:exactMatch odrl:writeTo.
+odrl:append odrl:includedIn odrl:use.
+odrl:appendTo odrl:includedIn odrl:use.
+odrl:attachPolicy odrl:includedIn odrl:use.
+odrl:attachSource odrl:includedIn odrl:use.
+odrl:commercialize odrl:includedIn odrl:use.
+odrl:copy odrl:includedIn odrl:use.
+odrl:export odrl:includedIn odrl:use.
+odrl:license odrl:includedIn odrl:use.
+odrl:pay odrl:includedIn odrl:use.
+odrl:share odrl:includedIn odrl:use.
+odrl:shareAlike odrl:includedIn odrl:use.
+odrl:write odrl:includedIn odrl:use.
+odrl:writeTo odrl:includedIn odrl:use.
+odrl:display odrl:includedIn odrl:use.
+odrl:extract odrl:includedIn odrl:use.

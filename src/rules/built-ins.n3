@@ -1,0 +1,14 @@
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+
+# uuid backward rule (component)
+{
+   ?input :getUUID ?urnUuid 
+}
+<= 
+{
+   ?input log:skolem ?uniqueNode .
+   ?uniqueNode log:uuid ?uuidString .
+   ( "urn:uuid:" ?uuidString ) string:concatenation ?urnUuidString .
+   ?urnUuid log:uri ?urnUuidString .
+} .
