@@ -100,7 +100,7 @@ The default ODRL Engine uses under the hood [Notation3](https://w3c.github.io/N3
 
 It is  an extension of the [`ODRLN3Engine`](#ODRLN3Engine), has no constructor arguments and is configured in the following manner:
 - it uses the [eyereasoner](https://github.com/eyereasoner/eye-js), a distribution of EYE reasoner in the JavaScript ecosystem using Webassembly
-- it uses the notation rules located at [`ODRL-Evaluator/rules/simpleRules.n3`](./src/rules/simpleRules.n3)
+- it uses the notation rules located at [`src/rules/simpleRules.n3`](./src/rules/simpleRules.n3)
 
 ```ts
 import { ODRLEngine} from 'odrl-evaluator'
