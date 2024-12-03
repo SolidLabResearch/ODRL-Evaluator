@@ -1,4 +1,6 @@
 # ODRL Evaluator
+[![DOI](https://zenodo.org/badge/897790678.svg)](https://doi.org/10.5281/zenodo.14265266)
+
 
 The ODRL Evaluator is open-source software that realizes the evaluation of an ODRL policy.
 It does so by generating a Compliance Report, that states clearly for each policy which rules are active or not and the reason why through the satisfaction state of its constraints.
