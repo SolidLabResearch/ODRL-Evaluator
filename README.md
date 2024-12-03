@@ -6,7 +6,7 @@ It does so by generating a Compliance Report, that states clearly for each polic
 The definition of an ODRL evaluator as defined by the [ODRL Information Model 2.2](https://www.w3.org/TR/odrl-model/#terminology):
 > A system that determines whether the Rules of an ODRL Policy expression have meet their intended action performance.
 
-The [model for a Compliance Report](./Compliance-Report.md) is based of the [ODRL Formal Semantics specification](https://w3c.github.io/odrl/formal-semantics/) created by the [W3C ODRL Community Group](https://www.w3.org/community/odrl/) (CG) (also see [ODRL CG](https://www.w3.org/community/odrl/) for all reports and drafts developed by the CG).
+The [model for a Compliance Report](https://github.com/SolidLabResearch/ODRL-Compliance-Report-Model) is based of the [ODRL Formal Semantics specification](https://w3c.github.io/odrl/formal-semantics/) created by the [W3C ODRL Community Group](https://www.w3.org/community/odrl/) (CG) (also see [ODRL CG](https://www.w3.org/community/odrl/) for all reports and drafts developed by the CG).
 
 ## How does the ODRL Evaluator work?
 The evaluation relies on 3 inputs:
@@ -48,7 +48,7 @@ main()
 Note that the policy, request and state of the world is left empty. 
 Due to the check, running this code will result in an error.
 
-For an example that does also parse an ODRL Policy, ODRL Request and the state of the world, checkout the typescript file [`test-n3-evaluator.ts`](../demo/test-n3-evaluator.ts).
+For an example that does also parse an ODRL Policy, ODRL Request and the state of the world, checkout the typescript file [`test-n3-evaluator.ts`](./demo/test-n3-evaluator.ts).
 
 ## ODRL Engine
 The  ODRL Engine is the workhorse of the ODRL Evaluator. It is the component that computes the Policy Compliance Report based on the input, a list of quads.
