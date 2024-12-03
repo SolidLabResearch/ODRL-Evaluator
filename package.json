@@ -10,7 +10,7 @@
     "copy-files":"cp -r ./src/rules/ ./dist/",
     "demo:test-engine": "ts-node demo/test-n3-engine.ts",
     "demo:test-evaluator": "ts-node demo/test-n3-evaluator.ts",
-    "prepare": "npm run build",
+    "prepack": "npm run build",
     "test":"jest"
   },
   "repository": {
