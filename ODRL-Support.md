@@ -303,10 +303,10 @@ Columns of the table elaborated:
 
 | Label        | Identifier                                                    | Normative | Deprecated | Supported |
 | ------------ | ------------------------------------------------------------- | --------- | ---------- | --------- |
-| Only One     | [`odrl:xone`](http://www.w3.org/ns/odrl/2/xone)               | ✅         | ❌          | ❌         |
+| Only One     | [`odrl:xone`](http://www.w3.org/ns/odrl/2/xone)               | ✅         | ❌          | ✅         |
 | And          | [`odrl:and`](http://www.w3.org/ns/odrl/2/and)                 | ✅         | ❌          | ✅         |
-| And Sequence | [`odrl:andSequence`](http://www.w3.org/ns/odrl/2/andSequence) | ✅         | ❌          | ❌         |
-| Or           | [`odrl:or`](http://www.w3.org/ns/odrl/2/or)                   | ✅         | ❌          | ❌         |
+| And Sequence | [`odrl:andSequence`](http://www.w3.org/ns/odrl/2/andSequence) | ✅         | ❌          | ✅         |
+| Or           | [`odrl:or`](http://www.w3.org/ns/odrl/2/or)                   | ✅         | ❌          | ✅         |
 
 ### Operators
 

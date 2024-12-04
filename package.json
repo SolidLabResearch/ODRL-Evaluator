@@ -14,7 +14,7 @@
     "demo:test-engine": "ts-node demo/test-n3-engine.ts",
     "demo:test-evaluator": "ts-node demo/test-n3-evaluator.ts",
     "prepare": "npm run build",
-    "rele ase": "npm run build && npm publish --access public",
+    "release": "npm run build && npm publish --access public",
     "test":"jest"
   },
   "repository": {
