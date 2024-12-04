@@ -4,13 +4,17 @@
   "description": "An open implementation of an ODRL Evaluator that evaluates ODRL policies by generating Compliance Reports",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npm run clean && tsc && npm run copy-files",
     "clean": "rm -rf ./dist",
     "copy-files":"cp -r ./src/rules/ ./dist/",
     "demo:test-engine": "ts-node demo/test-n3-engine.ts",
     "demo:test-evaluator": "ts-node demo/test-n3-evaluator.ts",
-    "prepack": "npm run build",
+    "prepare": "npm run build",
+    "rele ase": "npm run build && npm publish --access public",
     "test":"jest"
   },
   "repository": {

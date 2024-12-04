@@ -1,4 +1,5 @@
 # ODRL Evaluator
+[![npm](https://img.shields.io/npm/v/odrl-evaluator)](https://www.npmjs.com/package/odrl-evaluator)
 [![DOI](https://zenodo.org/badge/897790678.svg)](https://doi.org/10.5281/zenodo.14265266)
 
 
