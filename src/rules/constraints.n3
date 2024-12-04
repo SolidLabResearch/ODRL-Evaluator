@@ -152,11 +152,13 @@
         report:satisfactionState report:Satisfied .
 } .
 # Logical operands
-
+# logical operand premisereport generation
 { 
     # match and constraint
     ?constraint a odrl:LogicalConstraint;
-        odrl:and ?otherConstraint .
+       ?operandType?otherConstraint .
+    
+    ?operandType list:in ( odrl:and odrl:or odrl:xone odrl:andSequence) .
     # create uuid
     ( ?constraint ) :getUUID ?logicalConstraintReportID .
 
@@ -167,25 +169,28 @@
     ?logicalConstraintReportID report:constraint ?constraint .
 
     # Again, I don't think I can do it without explanation
-    ?logicalConstraintReportID report:constraintLogicalOperand odrl:and  .
+    ?logicalConstraintReportID report:constraintLogicalOperand ?operandType .
 }.
 
-# connect and constraint with other constraints
+# connect logical operand constraints with other premise reports
 { 
     ?logicalConstraintReportID a report:ConstraintReport .
     ?logicalConstraintReportID report:constraint ?constraint .
 
-    ?constraint odrl:and ?otherConstraint.
+    ?constraint ?operandType ?otherConstraint.
+    ?operandType list:in ( odrl:and odrl:or odrl:xone odrl:andSequence) .
 
     ?otherConstraintReportID report:constraint ?otherConstraint.
 } => {
     ?logicalConstraintReportID report:premiseReport ?otherConstraintReportID  .
 } .
 
-# Is and constraint report satisfied?
+# Is and constraint report satisfied? (same for andsequence if you ask me)
 { 
     ?logicalConstraintReportID a report:ConstraintReport ;
-        report:constraintLogicalOperand odrl:and .
+        report:constraintLogicalOperand ?operandType .
+    ?operandType list:in ( odrl:and odrl:andSequence) .
+
     
     # check for number of constraint reports
     (
@@ -215,7 +220,8 @@
 }.
 { 
     ?logicalConstraintReportID a report:ConstraintReport ;
-        report:constraintLogicalOperand odrl:and .
+        report:constraintLogicalOperand ?operandType .
+    ?operandType list:in ( odrl:and odrl:andSequence) .
     
     # check for number of constraint reports
     (
@@ -240,4 +246,64 @@
     ?satisfiedConstraints log:notEqualTo ?numberConstraints .    
 } => { 
     ?logicalConstraintReportID report:satisfactionState report:Unsatisfied  .
+}.
+
+# Is or constraint report satisfied?
+{ 
+    ?logicalConstraintReportID a report:ConstraintReport ;
+        report:constraintLogicalOperand odrl:or .
+    
+    # check for satisfied constraints: At least on of them MUST be satisfied
+    (
+        ?template
+        {
+            ?logicalConstraintReportID report:premiseReport ?premiseReport .
+            ?premiseReport report:satisfactionState report:Satisfied .
+        }
+        ?list
+    ) log:collectAllIn ?SCOPE .
+    ?list list:length ?satisfiedConstraints .
+    ?satisfiedConstraints math:notLessThan 1 .  
+} => { 
+    ?logicalConstraintReportID report:satisfactionState report:Satisfied  .
+
+}.
+{ 
+    ?logicalConstraintReportID a report:ConstraintReport ;
+        report:constraintLogicalOperand odrl:or .
+    
+    # check for satisfied constraints: At least on of them MUST be satisfied
+    (
+        ?template
+        {
+            ?logicalConstraintReportID report:premiseReport ?premiseReport .
+            ?premiseReport report:satisfactionState report:Satisfied .
+        }
+        ?list
+    ) log:collectAllIn ?SCOPE .
+    ?list list:length ?satisfiedConstraints .
+    ?satisfiedConstraints log:equalTo 0 .  
+} => { 
+    ?logicalConstraintReportID report:satisfactionState report:Unsatisfied  .
+
+}.
+# is xone premise report satisfied? only one, and not more, of the Constraints MUST be satisfied
+{ 
+    ?logicalConstraintReportID a report:ConstraintReport ;
+        report:constraintLogicalOperand odrl:xone .
+    
+    # check for satisfied constraints: At least on of them MUST be satisfied
+    (
+        ?template
+        {
+            ?logicalConstraintReportID report:premiseReport ?premiseReport .
+            ?premiseReport report:satisfactionState report:Satisfied .
+        }
+        ?list
+    ) log:collectAllIn ?SCOPE .
+    ?list list:length ?satisfiedConstraints .
+    ?satisfiedConstraints log:equalTo 1 .  
+} => { 
+    ?logicalConstraintReportID report:satisfactionState report:Satisfied  .
+
 }.
