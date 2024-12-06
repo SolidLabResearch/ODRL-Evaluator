@@ -1,0 +1,195 @@
+@prefix : <http://example.org/> .
+@prefix math: <http://www.w3.org/2000/10/swap/math#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix report: <http://example.com/report/temp/> .
+@prefix temp: <http://example.com/request/> .
+
+####################################################################################################
+# Permission Reports
+{
+   ?ruleReport a report:PermissionReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Performed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:Fulfilled .
+} .
+
+{
+   ?ruleReport a report:PermissionReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Unperformed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet . #TODO: fulfilled or nonset? -> ask Beatriz
+} .
+
+{
+   ?ruleReport a report:PermissionReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Unknown .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet . #TODO: fulfilled or nonset? -> ask Beatriz
+} .
+
+{
+   ?ruleReport a report:PermissionReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Performed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:Violated .
+} .
+
+{
+   ?ruleReport a report:PermissionReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Unperformed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet . #TODO: fulfilled or nonset? -> ask Beatriz
+} .
+
+{
+   ?ruleReport a report:PermissionReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Unknown .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet . #TODO: fulfilled or nonset? -> ask Beatriz
+} .
+
+####################################################################################################
+# Prohibition Reports
+{
+   ?ruleReport a report:ProhibitionReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Performed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:Violated .
+} .
+
+{
+   ?ruleReport a report:ProhibitionReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Unperformed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:Fulfilled .
+} .
+
+{
+   ?ruleReport a report:ProhibitionReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Unknown .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet .
+} .
+
+{
+   ?ruleReport a report:ProhibitionReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Performed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet .
+} .
+
+{
+   ?ruleReport a report:ProhibitionReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Unperformed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet .
+} .
+
+{
+   ?ruleReport a report:ProhibitionReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Unknown .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet .
+} .
+
+####################################################################################################
+# Duty Reports
+
+{
+   ?ruleReport a report:DutyReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Performed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:Fulfilled .
+} .
+
+{
+   ?ruleReport a report:DutyReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Unperformed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:Violated .
+} .
+
+{
+   ?ruleReport a report:DutyReport ;
+       report:activationState report:Active ;
+       report:performanceState report:Unknown .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet .
+} .
+
+{
+   ?ruleReport a report:DutyReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Performed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet .
+} .
+
+{
+   ?ruleReport a report:DutyReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Unperformed .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet .
+} .
+
+{
+   ?ruleReport a report:DutyReport ;
+       report:activationState report:Inactive ;
+       report:performanceState report:Unknown .
+}
+=> 
+{
+   ?ruleReport report:deonticState report:NonSet .
+} .
