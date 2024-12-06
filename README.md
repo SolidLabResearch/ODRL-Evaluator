@@ -12,6 +12,8 @@ The definition of an ODRL evaluator as defined by the [ODRL Information Model 2.
 The [model for a Compliance Report](https://github.com/SolidLabResearch/ODRL-Compliance-Report-Model) is based of the [ODRL Formal Semantics specification](https://w3c.github.io/odrl/formal-semantics/) created by the [W3C ODRL Community Group](https://www.w3.org/community/odrl/) (CG) (also see [ODRL CG](https://www.w3.org/community/odrl/) for all reports and drafts developed by the CG).
 
 ## How does the ODRL Evaluator work?
+![](./img/ODRL-Evaluator.svg)
+
 The evaluation relies on 3 inputs:
 - An ODRL Policy
 - An ODRL Request
@@ -31,6 +33,11 @@ The default ODRL Engine is [`ODRLEngine`](#odrlengine).
 Thus, if the user wants a faster evaluation and is sure that all checks are not required, they could directly use the ODRL engine (at their own risk).
 
 *\*Following steps are not implemented yet, but should be: validation, cardinality, SOTW, policy decomposition*
+
+## ODRL Evaluator Support
+
+[ODRL Evaluator Support](./ODRL-Support.md) contains all aspects of the ODRL IM that are currently supported
+
 ## Running the ODRL Evaluator
 Following code shows how to run the ODRL Evaluator.
 ```ts

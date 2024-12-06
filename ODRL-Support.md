@@ -14,19 +14,17 @@ The properties of the permission that are evaluated against a request and the st
 - [Constraints](#constraints): the `odrl:constraint`(s) of the permission.
   - Note: when there are multiple constraints and no logical constraint is provided, it is assumed that `odrl:and` is expected.
 
-Currently, the evaluator applies multiple steps (see [reason](../ODRL-Evaluator/rules/faulty/README.md)). 
-Therefore, the activation state of an `odrl:Permission` is calculated as the last step in [`activation-state.n3`](../ODRL-Evaluator/rules/activation-state.n3)
-
 Note that there the permission evaluation does not yet take into account Duty Reports. 
 That is the (pre-)conditions.
 
 ### Prohibition
 
-No support (yet) in the ODRL Evaluator for `odrl:Prohibition` rules.
+There is support in the ODRL Evaluator for `odrl:Prohibition` rules.
 
 ### Duty
 
 No support (yet) in the ODRL Evaluator for `odrl:Duty` rules.
+Reason being that requests to duties do not seem to make sense. Therefore, we assume that working with duties rely them being part of the State of the World.
 
 ## Action
 
@@ -118,89 +116,7 @@ Columns of the table elaborated:
 
 ### Exact match and included in support
 
-Support for `skos:ExactMatch` and `odrl:includedIn` is provided through inferences using [simple Notation3 rules](#inferences-to-be-cached) (which are [cached](../ODRL-Evaluator/rules/odrl-voc-inferences.ttl))
-They are then supported during the evaluation by rules that also looks at these properties. 
-The rules for these can be found [here](#inferences-for-the-report)
-
-
-#### Inferences to be cached
-
-Following rules are executed to add te cached inference to odrl voc.
-```n3
-# exact match rule
-{
-    ?thing skos:exactMatch ?otherThing .
-} =>
-{
-    ?otherThing skos:exactMatch ?thing .
-}.
-# exact match rule + inference of includedIN
-{
-    ?action skos:exactMatch ?otherAction;
-        odrl:includedIn ?includedAction .
-} =>
-{
-    ?otherAction skos:exactMatch ?action ;
-        odrl:includedIn ?includedAction .
-}.
-# Transitivity includedIn
-{
-    ?actionX odrl:includedIn ?actionY.
-    ?actionY odrl:includedIn ?actionZ .
-} => { 
-    ?actionX odrl:includedIn ?actionZ .
-}.
-```
-
-#### Inferences for the report
-
-Notation3 rule for `odrl:includedIn` (note that this requires the ODRL voc and some inferences due to transitivity)
-```n3
-{
-   ?ruleReport a report:PermissionReport ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
-
-   ?permission odrl:action ?x .
-
-    ?x a odrl:Action;
-        odrl:includedIn ?action .
-
-   ?requestPermission odrl:action ?requestedAction .
-   ?action log:equalTo ?requestedAction .
-   ( ?action ) :getUUID ?urnUuid .
-}
-=> 
-{
-   ?ruleReport report:premiseReport ?urnUuid .
-   ?urnUuid a report:ActionReport ;
-       report:satisfactionState report:Satisfied .
-} .
-```
-
-Notation3 rule  for `skos:ExactMatch` (note that this requires the ODRL voc and some inferences due to transitivity)
-```n3
-{
-   ?ruleReport a report:PermissionReport ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
-
-   ?permission odrl:action ?x .
-
-    ?x a odrl:Action;
-        skos:exactMatch ?action .
-
-   ?requestPermission odrl:action ?requestedAction .
-   ?action log:equalTo ?requestedAction .
-   ( ?action ) :getUUID ?urnUuid .
-}
-=> 
-{
-   ?ruleReport report:premiseReport ?urnUuid .
-   ?urnUuid a report:ActionReport ;
-       report:satisfactionState report:Satisfied .
-} .
-```
+Support for `skos:ExactMatch` and `odrl:includedIn` is provided through inferences using simple Notation3 rules
 
 ## Asset
 
@@ -213,33 +129,6 @@ To check for membership in an Asset Collection, the `odrl:partOf` property is us
 Example rule of Asset when Asset Collection is present:
 Note that the rule is a bit odd. This was also pointed out by [Joshua Corenjo](https://github.com/joshcornejo) in a [github issue](https://github.com/w3c/odrl/issues/64#issue-2572434743).
 
-```n3
-{
-   ?ruleReport a report:PermissionReport ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
-       report:premiseReport ?targetReport .
-
-   ?targetReport a report:TargetReport .     
-   
-   # rule containing asset collection
-   ?permission odrl:target ?iri .
-
-   # asset collection in policy rule
-   ?iri a odrl:AssetCollection.
-   ?iri odrl:source ?assetCollection .
-   
-   # requested asset (resource)
-   ?requestPermission odrl:target ?resourceInCollection .
-
-   # from state of the world
-   ?resourceInCollection odrl:partOf ?assetCollection .
-}
-=> 
-{
-   ?targetReport report:satisfactionState report:Satisfied .
-} .
-```
 
 ## Party
 
@@ -251,39 +140,10 @@ When this is not the case, no satisfaction of this constraint can be obtained.
 
 To check for membership in an Party Collection, the `odrl:partOf` property is used as stated in [ODRL IM §2.2.2](https://www.w3.org/TR/odrl-model/#party-partof).
 
-Example rule of Party when Party Collection is present:
-
-```n3
-{
-   ?ruleReport a report:PermissionReport ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
-       report:premiseReport ?partyReport .
-
-   ?partyReport a report:PartyReport .
-
-   # rule containing party collection
-   ?permission odrl:assignee ?iri .
-
-   # party collection in policy rule
-   ?iri a odrl:PartyCollection.
-   ?iri odrl:source ?partyCollection .
-
-   # requested party
-   ?requestPermission odrl:assignee ?requestedParty .
-
-   # from state of the world
-   ?requestedParty odrl:partOf ?partyCollection .
-}
-=> 
-{
-   ?partyReport report:satisfactionState report:Satisfied .
-} .
-```
 
 ## Constraints
 
-Rules that implement the constraints can be found in [`constraints.n3`](../ODRL-Evaluator/rules/constraints.n3).
+Rules that implement the constraints can be found in [`constraints.n3`](../src/rules/constraints.n3).
 
 ### Refinements
 
