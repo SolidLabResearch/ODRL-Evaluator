@@ -1,0 +1,39 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  test:
+    # Run unit tests on windows and linux
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system:
+          - ubuntu-latest
+          - windows-latest
+        node-version:
+          - '18.0'
+          - 18.x
+          - '20.0'
+          - 20.x
+          - '22.1'
+          - 22.x
+    timeout-minutes: 15
+    steps:
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Ensure line endings are consistent
+        run: git config --global core.autocrlf input
+      - name: Check out repository
+        uses: actions/checkout@v4.1.7
+      - name: Install dependencies and run build scripts
+        run: npm ci
+      - name: Run tests
+        run: npm run test

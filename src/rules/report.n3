@@ -6,7 +6,7 @@
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix report: <http://example.com/report/temp/> .
 @prefix temp: <http://example.com/request/> .
-
+@prefix skos: <http://www.w3.org/2004/02/skos/core#>.
 # Policy report
 {
    ?policy a ?policyType .
@@ -272,7 +272,7 @@
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
-   ?requestedAction odrl:exactMatch ?action .
+   ?requestedAction skos:exactMatch ?action .
 } => 
 {
    ?actionReport a report:ActionReport ;
