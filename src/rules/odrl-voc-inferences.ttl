@@ -2,7 +2,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 
-# Inferences about exact match cached (also contains symmetric property `odrl:includedIn`)
+# Inferences about exact match cached (also contains symmetric property "odrl:includedIn")
 odrl:modify skos:exactMatch odrl:append.
 odrl:modify skos:exactMatch odrl:appendTo.
 cc:Notice skos:exactMatch odrl:attachPolicy.

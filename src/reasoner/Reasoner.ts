@@ -1,6 +1,4 @@
-import { Store } from "n3";
-import { storeToString, turtleStringToStore } from "../util/RDFUtil";
-
+import { Store, Parser, Writer } from "n3";
 
 // copy from https://github.com/eyereasoner/Koreografeye/tree/e2c980c64b230ccbd65a5d0e0bf22cdf0cd5d21c/src/orchestrator/reasoner + my own util functions
 export abstract class Reasoner {
@@ -26,7 +24,7 @@ export abstract class Reasoner {
      */
     public async reason(dataStore: Store, rules: string[]): Promise<Store> {
 
-        const n3 = storeToString(dataStore);
+        const n3 = new Writer().quadsToString(dataStore.getQuads(null, null, null, null));
 
         if (!n3) {
             throw new Error(`failed to transform store to turtle`);
@@ -34,8 +32,8 @@ export abstract class Reasoner {
 
         const result = await this.run([n3], rules);
 
-        const resultStore = await turtleStringToStore(result);
-
+        const resultStore = new Store(new Parser().parse(result));
+    
         return resultStore;
     }
 }
