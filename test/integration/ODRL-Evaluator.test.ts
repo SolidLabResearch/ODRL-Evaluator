@@ -32,7 +32,7 @@ const stateOfTheWorldText = `
 @prefix dct: <http://purl.org/dc/terms/>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-@prefix report: <http://example.com/report/temp/>.
+@prefix report: <https://w3id.org/force/compliance-report#>.
 
 <urn:uuid:b3d04120-04b4-4176-b0d7-c813fa654ab8> a report:PolicyReport;
     dct:created "2025-01-14T10:09:08.370Z"^^xsd:dateTime;

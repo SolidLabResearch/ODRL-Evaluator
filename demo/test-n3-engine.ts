@@ -10,7 +10,7 @@ const odrlPolicyText = `
 @prefix dct: <http://purl.org/dc/terms/>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-@prefix report: <http://example.com/report/temp/>.
+@prefix report: <https://w3id.org/force/compliance-report#>.
 
 <urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> a odrl:Set;
     dct:description "ZENO is data owner of resource X. ALICE may READ resource X.";
@@ -29,7 +29,7 @@ const odrlRequestText = `
 @prefix dct: <http://purl.org/dc/terms/>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-@prefix report: <http://example.com/report/temp/>.
+@prefix report: <https://w3id.org/force/compliance-report#>.
 
 <urn:uuid:1bafee59-006c-46a3-810c-5d176b4be364> a odrl:Request;
     dct:description "Requesting Party ALICE requests to READ resource X.";
@@ -46,7 +46,7 @@ const stateOfTheWorldText = `
 @prefix dct: <http://purl.org/dc/terms/>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-@prefix report: <http://example.com/report/temp/>.
+@prefix report: <https://w3id.org/force/compliance-report#>.
 
 <urn:uuid:f580eb45-e8bf-4bf0-b85f-f3d37774e2d4> a ex:Sotw ;
     ex:includes temp:currentTime, ex:alice, ex:zeno.
@@ -63,8 +63,8 @@ const ruleDir = path.join(path.dirname(__filename), "..", "src", "rules");
 const rulePath = path.join(ruleDir, "simpleRules.n3");
 const rules = fs.readFileSync(rulePath, "utf-8");
 
-const ODRLEyeLocalEngine = new ODRLN3Engine(eye, rules);
-const ODRLEyeJsEngine = new ODRLN3Engine(eyeJs, rules);
+const ODRLEyeLocalEngine = new ODRLN3Engine(eye, [rules]);
+const ODRLEyeJsEngine = new ODRLN3Engine(eyeJs, [rules]);
 
 async function main() {
     // parse input

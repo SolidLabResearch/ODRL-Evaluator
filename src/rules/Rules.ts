@@ -6,7 +6,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 @prefix list: <http://www.w3.org/2000/10/swap/list#> .
 @prefix log: <http://www.w3.org/2000/10/swap/log#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-@prefix report: <http://example.com/report/temp/> .
+@prefix report: <https://w3id.org/force/compliance-report#> .
 @prefix temp: <http://example.com/request/> .
 @prefix : <http://example.org/> .
 @prefix math: <http://www.w3.org/2000/10/swap/math#> .
@@ -14,7 +14,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 @prefix list: <http://www.w3.org/2000/10/swap/list#> .
 @prefix log: <http://www.w3.org/2000/10/swap/log#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-@prefix report: <http://example.com/report/temp/> .
+@prefix report: <https://w3id.org/force/compliance-report#> .
 @prefix temp: <http://example.com/request/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#>.
 @prefix cc: <http://creativecommons.org/ns#> .
@@ -2484,7 +2484,7 @@ odrl:display odrl:includedIn odrl:use.
 odrl:extract odrl:includedIn odrl:use.`, `@prefix : <http://example.org/> .
 @prefix list: <http://www.w3.org/2000/10/swap/list#> .
 @prefix log: <http://www.w3.org/2000/10/swap/log#> .
-@prefix report: <http://example.com/report/temp/> .
+@prefix report: <https://w3id.org/force/compliance-report#> .
 
 # check whether rule report is active
 {

@@ -1,7 +1,7 @@
 @prefix : <http://example.org/> .
 @prefix list: <http://www.w3.org/2000/10/swap/list#> .
 @prefix log: <http://www.w3.org/2000/10/swap/log#> .
-@prefix report: <http://example.com/report/temp/> .
+@prefix report: <https://w3id.org/force/compliance-report#> .
 
 # check whether rule report is active
 {
