@@ -1,8 +1,8 @@
-import { isomorphic } from "rdf-isomorphic";
 import { ODRLEngineMultipleSteps, ODRLEvaluator, turtleStringToStore, blanknodeify } from "../../src";
 import { Quad } from "n3";
-describe('The default ODRL evaluator', () => {
+import "jest-rdf";
 
+describe('The default ODRL evaluator', () => {
     const odrlEvaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
     it ('Handle skos exact match', async () => {
         const odrlPolicyText = `
@@ -60,7 +60,7 @@ const stateOfTheWorldText = `
         odrlPolicyStore.getQuads(null, null, null, null), 
         odrlRequestStore.getQuads(null, null, null, null), 
         stateOfTheWorldStore.getQuads(null, null, null, null));
-
-        expect(isomorphic(blanknodeify(report as any as Quad[]), blanknodeify(expectedReportStore.getQuads(null, null, null, null)))).toBeTruthy();
-    })
+        
+        expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportStore.getQuads(null, null, null, null)))
+    });
 })
