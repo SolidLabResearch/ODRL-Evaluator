@@ -2,9 +2,7 @@ import type { Quad } from '@rdfjs/types';
 import { Store } from 'n3'
 import { Reasoner } from "../reasoner/Reasoner";
 import { EyeJsReasoner } from "../reasoner/EyeJsReasoner";
-import * as path from "path"
-import * as fs from "fs"
-import { RULES} from '../rules/Rules'
+import { RULES, SIMPLE_RULES} from '../rules/Rules'
 
 export interface Engine {
     evaluate(input: Quad[]): Promise<Quad[]>;
@@ -27,10 +25,7 @@ export class ODRLN3Engine implements Engine {
 export class ODRLEngine extends ODRLN3Engine {
     constructor(reasoner?: Reasoner) {
         reasoner = reasoner ?? new EyeJsReasoner();
-        const ruleDir = path.join(path.dirname(__filename), "..", "rules");
-        const rulePath = path.join(ruleDir, "simpleRules.n3");
-        const rules = fs.readFileSync(rulePath, "utf-8");
-        super(reasoner, [rules]);
+        super(reasoner, SIMPLE_RULES);
     }
 }
 

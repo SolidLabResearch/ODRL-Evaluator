@@ -1,6 +1,6 @@
 {
   "name": "odrl-evaluator",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "An open implementation of an ODRL Evaluator that evaluates ODRL policies by generating Compliance Reports",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,10 +12,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run clean && npm run makeRules && tsc && npm run copy-files",
+    "build": "npm run clean && npm run makeRules && tsc",
     "makeRules": "ts-node scripts/MakeRules.ts ",
     "clean": "rm -rf ./dist",
-    "copy-files": "cp -r ./src/rules/ ./dist/",
     "demo:test-engine": "ts-node demo/test-n3-engine.ts",
     "demo:test-evaluator": "ts-node demo/test-n3-evaluator.ts",
     "prepare": "npm run build",

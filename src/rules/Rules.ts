@@ -2571,3 +2571,208 @@ odrl:extract odrl:includedIn odrl:use.`, `@prefix : <http://example.org/> .
 {
     ?report report:satisfactionState report:Unsatisfied .
 } .`];
+export const SIMPLE_RULES: string[] = [`@prefix : <http://example.org/> .
+@prefix math: <http://www.w3.org/2000/10/swap/math#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix report: <https://w3id.org/force/compliance-report#> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix temp: <http://example.com/request/> .
+
+# uuid backward rule (component)
+{
+   ?input :getUUID ?urnUuid 
+}
+<= 
+{
+   ?input log:skolem ?uniqueNode .
+   ?uniqueNode log:uuid ?uuidString .
+   ( "urn:uuid:" ?uuidString ) string:concatenation ?urnUuidString .
+   ?urnUuid log:uri ?urnUuidString .
+} .
+
+# Policy report
+{
+   ?policy a ?policyType .
+   ?policyType list:in ( odrl:Agreement odrl:Set odrl:Policy odrl:Offer ) .
+   ?policyRequest a odrl:Request .
+   temp:currentTime dct:issued ?time .
+   ( ?policy ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?urnUuid a report:PolicyReport ;
+       dct:created ?time ;
+       report:policy ?policy ;
+       report:policyRequest ?policyRequest .
+} .
+
+# Permission report (expecting explicit permission type)
+# create permission report
+{
+   ?policyReport a report:PolicyReport ;
+       report:policy ?policy ;
+       report:policyRequest ?policyRequest .
+   ?policy odrl:permission ?permission .
+   ?policyRequest odrl:permission ?requestPermission .
+   ( ?permission ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?policyReport report:ruleReport ?urnUuid .
+   ?urnUuid a report:PermissionReport ;
+       report:attemptState report:Attempted ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+} .
+
+# check whether permission report is active
+{
+   ?urnUuid a report:PermissionReport ;
+       report:attemptState report:Attempted ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+
+    # check for number of constraint reports
+   (
+       ?template
+       {
+           ?urnUuid report:premiseReport _:s 
+       }
+       ?L
+   ) log:collectAllIn ?SCOPE .
+   ?L list:length ?numberConstraints .
+
+    # check for satisfied constraints
+   (
+       ?premiseReport
+       {
+           ?urnUuid report:premiseReport ?premiseReport .
+           ?premiseReport report:satisfactionState report:Satisfied .
+       }
+       ?list
+   ) log:collectAllIn ?SCOPE .
+   ?list list:length ?satisfiedConstraints .
+   ?satisfiedConstraints log:equalTo ?numberConstraints .
+}
+=> 
+{
+   ?urnUuid report:activationState report:Active .
+} .
+{
+   ?urnUuid a report:PermissionReport ;
+       report:attemptState report:Attempted ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+
+    # check for number of constraint reports
+   (
+       ?template
+       {
+           ?urnUuid report:premiseReport _:s 
+       }
+       ?L
+   ) log:collectAllIn ?SCOPE .
+   ?L list:length ?numberConstraints .
+
+    # check for satisfied constraints
+   (
+       ?premiseReport
+       {
+           ?urnUuid report:premiseReport ?premiseReport .
+           ?premiseReport report:satisfactionState report:Satisfied .
+       }
+       ?list
+   ) log:collectAllIn ?SCOPE .
+   ?list list:length ?satisfiedConstraints .
+   ?satisfiedConstraints log:notEqualTo ?numberConstraints .
+}
+=> 
+{
+   ?urnUuid report:activationState report:Inactive .
+} .
+
+
+# Constraint report
+
+# Target report
+{
+   ?ruleReport a report:PermissionReport ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+   ?permission odrl:target ?resource .
+   ?requestPermission odrl:target ?requestedResource .
+   ?resource log:equalTo ?requestedResource .
+   ( ?resource ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?ruleReport report:premiseReport ?urnUuid .
+   ?urnUuid a report:TargetReport ;
+       report:satisfactionState report:Satisfied .
+} .
+# Party report
+{
+   ?ruleReport a report:PermissionReport ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+   ?permission odrl:assignee ?party .
+   ?requestPermission odrl:assignee ?requestedParty .
+   ?party log:equalTo ?requestedParty .
+   ( ?party ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?ruleReport report:premiseReport ?urnUuid .
+   ?urnUuid a report:PartyReport ;
+       report:satisfactionState report:Satisfied .
+} .
+{
+   ?ruleReport a report:PermissionReport ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+   ?permission odrl:assignee ?party .
+   ?requestPermission odrl:assignee ?requestedParty .
+   ?party log:notEqualTo ?requestedParty .
+   ( ?party ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?ruleReport report:premiseReport ?urnUuid .
+   ?urnUuid a report:PartyReport ;
+       report:satisfactionState report:Unsatisfied .
+} .
+# Action report -> simple action
+{
+   ?ruleReport a report:PermissionReport ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+   ?permission odrl:action ?action .
+   ?requestPermission odrl:action ?requestedAction .
+   ?action log:equalTo ?requestedAction .
+   ( ?action ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?ruleReport report:premiseReport ?urnUuid .
+   ?urnUuid a report:ActionReport ;
+       report:satisfactionState report:Satisfied .
+} .
+{
+   ?ruleReport a report:PermissionReport ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission .
+   ?permission odrl:action ?action .
+   ?requestPermission odrl:action ?requestedAction .
+   ?action log:notEqualTo ?requestedAction .
+   ( ?action ) :getUUID ?urnUuid .
+}
+=> 
+{
+   ?ruleReport report:premiseReport ?urnUuid .
+   ?urnUuid a report:ActionReport ;
+       report:satisfactionState report:Unsatisfied .
+} .
+`];
