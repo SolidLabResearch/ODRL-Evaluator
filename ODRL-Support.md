@@ -248,3 +248,12 @@ To the best of our knowledge, no additional reasoning support can be added.
 - `odrl:relativePosition`
 	- broader (transitive) than `odrl:relativeSpatialPosition`
 	- broader (transitive) than `odrl:relativeTemporalPosition`
+
+## Policy Conflict Strategy
+
+There is no support for the `odrl:conflict` property.
+
+The reasons are two-fold: 
+- There is no terminology in the [Compliance Report Model](https://w3id.org/force/compliance-report) at the `report:PolicyReport` level regarding conflicts in its rules.
+- ODRL IM 2.2 does not describe (in [§2.10](https://www.w3.org/TR/odrl-model/#conflict)) how to merge multiple policies when their `odrl:conflict` property is differenent.
+  - E.g. how should two policies be merged when one policy contains an `odrl:perm` strategy, while the other `odrl:prohibit`? If that were to be described in ODRL, then evaluation can be implemented fairly easily.
