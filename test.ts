@@ -19,7 +19,7 @@ const policy = `
 
 <urn:uuid:32127a3f-5296-4cc6-b9d6-ef6c647a721d> a odrl:Set ;
   odrl:uid <urn:uuid:32127a3f-5296-4cc6-b9d6-ef6c647a721d> ;
-  dct:description "ALICE may READ resource X when it is before 2024-02-12T11:20:10.999Z." ;
+  dct:description "ALICE may READ resource X when it is before 'ex:updateValue' (see sotw)." ;
   dct:source <https://github.com/SolidLabResearch/ODRL-Test-Suite/> ;
   odrl:permission <urn:uuid:d6ab4a38-68fb-418e-8af5-e77649a2187a> .
 
@@ -67,6 +67,7 @@ const request = `
   odrl:action odrl:read ;
   odrl:target ex:x .
 `
+const writer = new Writer()
 
 async function main() {
   const parser = new Parser()
@@ -78,46 +79,11 @@ async function main() {
   const odrlRequestQuads = parser.parse(request)
   const stateOfTheWorldQuads = parser.parse(sotw)
 
-  // TODO: algorithm to fetch value using SHACL path from sotw in policy
-
-  //@ts-ignore
-  const { findNodes } = await import('clownface-shacl-path')
-  //@ts-ignore
-  const clownface = (await import('clownface')).default
-  //@ts-ignore
-  const { dataset } = await import('@rdfjs/dataset');
-
-  const odrlPolicyStore = new Store(odrlDynamicPolicyQuads)
-  const odrlDynamicPolicyStore = new Store(odrlDynamicPolicyQuads)
-  const operandReferenceNodes = odrlDynamicPolicyStore.getSubjects("https://www.w3.org/TR/rdf-schema#type", 'http://example.org/odrluc#OperandReference', null);
-
-  const operandReferenceNode = operandReferenceNodes[0]
-  const constraintNodes = odrlDynamicPolicyStore.getSubjects("http://www.w3.org/ns/odrl/2/rightOperandReference", operandReferenceNode, null)
-  console.log(constraintNodes);
-
-  const operandReferencePath = odrlDynamicPolicyStore.getObjects(operandReferenceNode, 'http://example.org/odrluc#path', null)
-  console.log(operandReferencePath[0]); // TODO: should be extracted properly
-
-  const nodes = findNodes(clownface({ dataset: new Store(stateOfTheWorldQuads) }), operandReferencePath[0])
-  const instantiatedValue = nodes.terms[0]; // according to our algorithm, there should be only one term
-  console.log(instantiatedValue);
-
-
-  for (const constraintNode of constraintNodes) {
-    // remove reference thingy
-    odrlPolicyStore.removeQuad(constraintNode, namedNode("http://www.w3.org/ns/odrl/2/rightOperandReference"), operandReferenceNode)
-    const rightOperandTriple = quad(constraintNode, namedNode("http://www.w3.org/ns/odrl/2/rightOperand"), instantiatedValue)
-    odrlPolicyStore.addQuads([rightOperandTriple])
-
-    console.log(writer.quadsToString([rightOperandTriple]))
-  }
-
-  odrlPolicyQuads.push(...odrlPolicyStore.getQuads(null, null, null, null))
-
-  // const instantiatedPolicyQuads = materializePolicy(odrlDynamicPolicyQuads, stateOfTheWorldQuads)
-  // console.log(writer.quadsToString(instantiatedPolicyQuads));
+  const instantiatedPolicyQuads = await materializePolicy(odrlDynamicPolicyQuads, stateOfTheWorldQuads)
   
-  // odrlPolicyQuads.push(...instantiatedPolicyQuads)
+  odrlPolicyQuads.push(...instantiatedPolicyQuads)
+
+  console.log(writer.quadsToString(odrlPolicyQuads));
 
   // reasoning over new policy
   const evaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
@@ -132,6 +98,8 @@ async function main() {
 }
 main()
 
+// algorithm to fetch value using SHACL path from sotw in policy
+// Note: currently it only fetches a simple shacl property path
 async function materializePolicy(dynamicPolicy: Quad[], stateOfTheWorld: Quad[]): Promise<Quad[]> {
   //@ts-ignore
   const { findNodes } = await import('clownface-shacl-path')
@@ -143,9 +111,11 @@ async function materializePolicy(dynamicPolicy: Quad[], stateOfTheWorld: Quad[])
   const odrlDynamicPolicyStore = new Store(dynamicPolicy)
   const stateOfTheWorldStore = new Store(stateOfTheWorld)
 
-  const operandReferenceNodes = odrlDynamicPolicyStore.getSubjects("https://www.w3.org/TR/rdf-schema#type", 'http://example.org/odrluc#OperandReference', null);
+
+  const operandReferenceNodes = odrlDynamicPolicyStore.getSubjects("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", 'http://example.org/odrluc#OperandReference', null);
 
   for (const operandReferenceNode of operandReferenceNodes) {
+
     // ODRL constraint that has that given rightOperandReference
     const constraintNodes = odrlDynamicPolicyStore.getSubjects("http://www.w3.org/ns/odrl/2/rightOperandReference", operandReferenceNode, null)
 
@@ -156,7 +126,7 @@ async function materializePolicy(dynamicPolicy: Quad[], stateOfTheWorld: Quad[])
     // extract SHACL Property Path using clownface
     const nodes = findNodes(clownface({ dataset: stateOfTheWorldStore }), operandReferencePath[0])
     const instantiatedValue = nodes.terms[0]; // according to our algorithm (see paper), there should be only one term
-
+    
     for (const constraintNode of constraintNodes) {
       // remove rightOperandRefrence triple from constraint
       odrlPolicyStore.removeQuad(constraintNode, namedNode("http://www.w3.org/ns/odrl/2/rightOperandReference"), operandReferenceNode)
