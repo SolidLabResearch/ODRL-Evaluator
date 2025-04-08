@@ -58,7 +58,7 @@ ex:zeno a foaf:Person.
 
 
 const eyeJs = new EyeJsReasoner()
-const eye = new EyeReasoner('/usr/local/bin/eye', ["--quiet", "--nope", "--pass-only-new"])
+const eye = new EyeReasoner('eye', ["--quiet", "--nope", "--pass-only-new"])
 const ruleDir = path.join(path.dirname(__filename), "..", "src", "rules");
 const rulePath = path.join(ruleDir, "simpleRules.n3");
 const rules = fs.readFileSync(rulePath, "utf-8");

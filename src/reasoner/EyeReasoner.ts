@@ -42,8 +42,8 @@ export class EyeReasoner extends Reasoner {
         return new Promise<string>(async (resolve, reject) => {
             let errorData = '';
             let resultData = '';
-            
-            const ls = spawn(this.eye, all_args);
+
+            const ls = spawn(this.eye, all_args, { shell: process.platform === 'win32' });
             ls.stdout.on('data', (data) => {
               resultData += data;
             });
