@@ -1,6 +1,6 @@
-import { ODRLEngineMultipleSteps, ODRLEvaluator, turtleStringToStore, blanknodeify } from "../../src";
-import { Quad, Parser } from "n3";
 import "jest-rdf";
+import { Parser, Quad } from "n3";
+import { blanknodeify, ODRLEngineMultipleSteps, ODRLEvaluator } from "../../src";
 
 describe('The default ODRL evaluator', () => {
     const odrlEvaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());

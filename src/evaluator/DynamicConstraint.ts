@@ -1,5 +1,5 @@
 import { Quad, Term } from "@rdfjs/types";
-import { BlankNode, Literal, NamedNode, Store } from 'n3';
+import { Literal, NamedNode, Store } from 'n3';
 import { BasicLensM, CBDLens, Cont, pred, ShaclPath } from "rdf-lens";
 import { ODRL, ODRLUC, RDF } from "../util/Vocabularies";
 

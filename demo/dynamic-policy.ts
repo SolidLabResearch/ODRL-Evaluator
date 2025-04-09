@@ -1,4 +1,3 @@
-import { Quad } from "@rdfjs/types";
 import { Parser, Writer } from 'n3';
 import { materializePolicy, ODRLEngineMultipleSteps, ODRLEvaluator, resourceToOptimisedTurtle } from "../dist/index";
 
