@@ -1,6 +1,6 @@
 import { Quad } from "@rdfjs/types";
 import { Parser, Writer } from 'n3';
-import { materializePolicy, ODRLEngineMultipleSteps, ODRLEvaluator } from "../dist/index";
+import { materializePolicy, ODRLEngineMultipleSteps, ODRLEvaluator, resourceToOptimisedTurtle } from "../dist/index";
 
 
 // Variant on test case 036: Read request from Alice to resource X returns into yes (temporal lt) (Alice Request Read X).
@@ -69,25 +69,39 @@ async function main() {
 
   const odrlDynamicPolicyQuads = parser.parse(policy)
 
-  const odrlPolicyQuads: Quad[] = []
   const odrlRequestQuads = parser.parse(request)
   const stateOfTheWorldQuads = parser.parse(sotw)
 
   const instantiatedPolicyQuads = materializePolicy(odrlDynamicPolicyQuads, stateOfTheWorldQuads)
   
-  odrlPolicyQuads.push(...instantiatedPolicyQuads)
+  console.log("Instantiated Policy:")
+  console.log(writer.quadsToString(instantiatedPolicyQuads));
 
-  console.log(writer.quadsToString(odrlPolicyQuads));
 
-  // reasoning over new policy
+  // reasoning over dynamic policy
   const evaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
   const reasoningResult = await evaluator.evaluate(
-    odrlPolicyQuads,
+    odrlDynamicPolicyQuads,
     odrlRequestQuads,
     stateOfTheWorldQuads)
 
   const output = writer.quadsToString(reasoningResult);
+  console.log("Compliance Report")
   console.log(output);
+
+      const prefixes = {
+          'odrl': 'http://www.w3.org/ns/odrl/2/',
+          'ex': 'http://example.org/',
+          'temp': 'http://example.com/request/',
+          'dct': 'http://purl.org/dc/terms/',
+          'xsd': 'http://www.w3.org/2001/XMLSchema#',
+          'foaf': 'http://xmlns.com/foaf/0.1/',
+          'report': 'https://w3id.org/force/compliance-report#'
+      }
+  
+      // created report with N3
+      // @ts-ignore
+      console.log(resourceToOptimisedTurtle(reasoningResult, prefixes));
 
 }
 main()

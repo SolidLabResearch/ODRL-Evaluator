@@ -1,6 +1,7 @@
 import type { Quad } from '@rdfjs/types';
 import { ODRLEngine, Engine} from './Engine';
 import { RDFValidator, TripleTermValidator, SHACLValidator } from './Validate';
+import { materializePolicy } from './DynamicConstraint';
 
 export interface Evaluator {
     /**
@@ -64,9 +65,11 @@ export class ODRLEvaluator implements Evaluator {
 
         // if there are compact policies -> they must be expanded (also reocmmended by ODRL § 2.7.1 Compact Policy)
 
+        // handle dynamic policies
+        const instantiatedPolicies = materializePolicy(policy, state);
         // evaluate
         // the evaluation will result into a conformance report
-        const evaluation = await this.engine.evaluate([...policy, ...request, ...state])
+        const evaluation = await this.engine.evaluate([...instantiatedPolicies, ...request, ...state])
 
         // TODO: think about when the report can be empty
         // does it always mean there is not enough information?
