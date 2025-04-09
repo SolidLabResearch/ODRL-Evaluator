@@ -1,10 +1,16 @@
 // use RDF lens instead of clownface:: https://ceur-ws.org/Vol-3759/paper13.pdf
 import { Quad, Term } from "@rdfjs/types";
-import { BasicLensM, Cont, pred, ShaclPath } from "rdf-lens";
+import { BasicLensM, Cont, pred, ShaclPath, CBDLens } from "rdf-lens";
 import { NamedNode, Parser, Store, Writer, DataFactory, Literal, BlankNode} from 'n3';
 import { ODRLEngineMultipleSteps, ODRLEvaluator } from "./dist/index";
 
 const { namedNode } = DataFactory
+
+// TODO: change baseIRI for odrluc to https://w3id.org/force/odrlproposed
+// TODO: create mini spec at https://w3id.org/force/odrlproposed and create a vocabulary/ontology there
+// Next steps:
+// - put proposals Beatriz and I from brainstorm in odrlproposed
+// - put discussion Pieter and I yesterday regarding ODRL and RDF Context ASsociation in odrlproposed
 
 // odlurc path as defined in "Interoperable and Continuous Usage Control Enforcement in Dataspaces"
 export const pathLens = pred(namedNode("http://example.org/odrluc#path"))
@@ -144,10 +150,11 @@ export async function materializePolicy(dynamicPolicy: Quad[], stateOfTheWorld: 
       // add materialized rightOperand
       odrlPolicyStore.addQuad(constraintNode, namedNode("http://www.w3.org/ns/odrl/2/rightOperand"), instantiatedValue)
     }
+
+    // remove OperandReference triples from Policy store
+    const operandReferenceQuads = CBDLens.execute({id:operandReferenceNode, quads: dynamicPolicy})
+    odrlPolicyStore.removeQuads(operandReferenceQuads)
   }
-
-
-  // TODO: need a clean up, there is dangling operandReference stuff in the ODRL Policy 
   return odrlPolicyStore.getQuads(null, null, null, null)
 }
 
