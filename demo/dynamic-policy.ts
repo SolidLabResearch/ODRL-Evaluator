@@ -73,7 +73,7 @@ async function main() {
   const odrlRequestQuads = parser.parse(request)
   const stateOfTheWorldQuads = parser.parse(sotw)
 
-  const instantiatedPolicyQuads = await materializePolicy(odrlDynamicPolicyQuads, stateOfTheWorldQuads)
+  const instantiatedPolicyQuads = materializePolicy(odrlDynamicPolicyQuads, stateOfTheWorldQuads)
   
   odrlPolicyQuads.push(...instantiatedPolicyQuads)
 

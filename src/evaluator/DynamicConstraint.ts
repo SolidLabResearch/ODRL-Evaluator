@@ -21,7 +21,7 @@ export function usePath(id: Term, quads: Quad[], lens: BasicLensM<Cont, Term>): 
 // implements dynamic policy constraint algorithm
 // algorithm to fetch value using SHACL path from sotw in policy
 // will only materialize when RightOperandReference class is present
-export async function materializePolicy(dynamicPolicy: Quad[], stateOfTheWorld: Quad[]): Promise<Quad[]> {
+export function materializePolicy(dynamicPolicy: Quad[], stateOfTheWorld: Quad[]): Quad[] {
     const odrlPolicyStore = new Store(dynamicPolicy)
     const odrlDynamicPolicyStore = new Store(dynamicPolicy)
   
