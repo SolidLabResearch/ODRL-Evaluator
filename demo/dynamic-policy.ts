@@ -1,12 +1,6 @@
-import { NamedNode, Parser, Store, Writer, DataFactory, Quad } from 'n3';
-import { ODRLEngineMultipleSteps, ODRLEvaluator } from "./dist/index";
-
-const { namedNode, quad } = DataFactory
-// Test algorithm for "Dynamic ODRL Specification"
-// see paper "Interoperable and Continuous Usage Control Enforcement in Dataspaces" https://raw.githubusercontent.com/woutslabbinck/papers/main/2024/Interoperable_and_Continuous_Usage_Control_Enforcement_in_Dataspaces.pdf
-
-// need to use https://www.npmjs.com/package/clownface-shacl-path
-// how to use TS module: https://github.com/woutslabbinck/ODRL-shape/blob/main/index.ts#L17
+import { Quad } from "@rdfjs/types";
+import { Parser, Writer } from 'n3';
+import { materializePolicy, ODRLEngineMultipleSteps, ODRLEvaluator } from "../dist/index";
 
 
 // Variant on test case 036: Read request from Alice to resource X returns into yes (temporal lt) (Alice Request Read X).
@@ -15,7 +9,7 @@ const policy = `
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix ex: <http://example.org/> .
 @prefix dct: <http://purl.org/dc/terms/> .
-@prefix odrluc: <http://example.org/odrluc#> .
+@prefix odrluc: <https://w3id.org/force/odrlproposed#> .
 
 <urn:uuid:32127a3f-5296-4cc6-b9d6-ef6c647a721d> a odrl:Set ;
   odrl:uid <urn:uuid:32127a3f-5296-4cc6-b9d6-ef6c647a721d> ;
@@ -38,6 +32,7 @@ ex:operandReference1 a odrluc:OperandReference ;
     odrluc:path ex:updatedValue .
 `
 
+// state of the world -> with external value indicating the time
 const sotw = `
 @prefix ex: <http://example.org/> .
 @prefix temp: <http://example.com/request/> .
@@ -67,7 +62,6 @@ const request = `
   odrl:action odrl:read ;
   odrl:target ex:x .
 `
-const writer = new Writer()
 
 async function main() {
   const parser = new Parser()
@@ -98,44 +92,3 @@ async function main() {
 }
 main()
 
-// algorithm to fetch value using SHACL path from sotw in policy
-// Note: currently it only fetches a simple shacl property path
-async function materializePolicy(dynamicPolicy: Quad[], stateOfTheWorld: Quad[]): Promise<Quad[]> {
-  //@ts-ignore
-  const { findNodes } = await import('clownface-shacl-path')
-  //@ts-ignore
-  const clownface = (await import('clownface')).default
-
-  const odrlPolicyStore = new Store(dynamicPolicy)
-
-  const odrlDynamicPolicyStore = new Store(dynamicPolicy)
-  const stateOfTheWorldStore = new Store(stateOfTheWorld)
-
-
-  const operandReferenceNodes = odrlDynamicPolicyStore.getSubjects("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", 'http://example.org/odrluc#OperandReference', null);
-
-  for (const operandReferenceNode of operandReferenceNodes) {
-
-    // ODRL constraint that has that given rightOperandReference
-    const constraintNodes = odrlDynamicPolicyStore.getSubjects("http://www.w3.org/ns/odrl/2/rightOperandReference", operandReferenceNode, null)
-
-    // SHACL Property path
-    // TODO: needs to be extracted properly (currently only the most simple form is extracted)
-    const operandReferencePath = odrlDynamicPolicyStore.getObjects(operandReferenceNode, 'http://example.org/odrluc#path', null)
-
-    // extract SHACL Property Path using clownface
-    const nodes = findNodes(clownface({ dataset: stateOfTheWorldStore }), operandReferencePath[0])
-    const instantiatedValue = nodes.terms[0]; // according to our algorithm (see paper), there should be only one term
-    
-    for (const constraintNode of constraintNodes) {
-      // remove rightOperandRefrence triple from constraint
-      odrlPolicyStore.removeQuad(constraintNode, namedNode("http://www.w3.org/ns/odrl/2/rightOperandReference"), operandReferenceNode)
-      // add materialized rightOperand
-      odrlPolicyStore.addQuad(constraintNode, namedNode("http://www.w3.org/ns/odrl/2/rightOperand"), instantiatedValue)
-    }
-  }
-
-
-  // TODO: need a clean up, there is dangling operandReference stuff in the ODRL Policy 
-  return odrlPolicyStore.getQuads(null, null, null, null)
-}

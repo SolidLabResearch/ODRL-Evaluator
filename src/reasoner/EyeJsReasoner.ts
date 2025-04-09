@@ -1,4 +1,4 @@
-import { n3reasoner } from "eyereasoner/dist";
+import { n3reasoner } from "eyereasoner";
 import { Reasoner } from "./Reasoner";
 
 export class EyeJsReasoner extends Reasoner {

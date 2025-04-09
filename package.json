@@ -17,6 +17,7 @@
     "clean": "rm -rf ./dist",
     "demo:test-engine": "ts-node demo/test-n3-engine.ts",
     "demo:test-evaluator": "ts-node demo/test-n3-evaluator.ts",
+    "demo:dynamic-policy": "ts-node demo/dynamic-policy.ts",
     "prepare": "npm run build",
     "release": "npm run build && npm publish --access public",
     "test": "jest"
@@ -45,17 +46,15 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@rdfjs/dataset": "^2.0.2",
     "@rdfjs/types": "^1.1.0",
     "@types/n3": "^1.16.3",
-    "clownface-shacl-path": "^2.4.0",
     "eyereasoner": "^16.18.4",
     "n3": "^1.20.4",
     "rdf-isomorphic": "^1.3.1",
     "rdf-lens": "^1.3.5",
     "rdf-parse": "^3.0.0",
     "rdf-store-stream": "^2.0.1",
-    "rdf-vocabulary": "^1.0.0",
+    "rdf-vocabulary": "^1.0.1",
     "streamify-string": "^1.0.1",
     "tmp": "^0.2.3",
     "uuidv4": "^6.2.13"
