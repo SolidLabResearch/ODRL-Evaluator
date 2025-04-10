@@ -41,12 +41,12 @@ export function materializePolicy(dynamicPolicy: Quad[], stateOfTheWorld: Quad[]
       // SHACL Property path
       const lens = getPath(operandReferenceNode, dynamicPolicy); 
   
-      // extract SHACL Property Path using clownface
+      // extract SHACL Property Path using RDF-Lens
       const getValue = usePath(externalResource, stateOfTheWorld, lens);
       const instantiatedValue = getValue[0]; // according to the algorithm (see paper), there should be only one term
       
       if (!(instantiatedValue instanceof NamedNode || instantiatedValue instanceof Literal)) {
-          // Now term is a valid Quad_Object
+          // Now instantiatedValue is a valid value
           throw Error("Instantiated value is not a proper value.");
       }
       for (const constraintNode of constraintNodes) {
