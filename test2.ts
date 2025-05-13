@@ -1,6 +1,6 @@
 import { readFile } from "fs/promises";
 import { PolicyAtomizer } from "odrl-atomizer"
-import { Parser, Writer, Literal, NamedNode, Store, DataFactory, Quad_Subject } from 'n3'
+import { Parser, Writer, Literal, NamedNode, Store, DataFactory, Quad_Subject, Quad_Object } from 'n3'
 import { Quad, Term } from "@rdfjs/types";
 import { BasicLens, BasicLensM, CBDLens, Cont, extractShapes, match, pred, ShaclPath, subject } from "rdf-lens";
 import { ODRL, ODRLUC, RDF } from "./src/util/Vocabularies";
@@ -148,13 +148,11 @@ async function policy_Atomization_algorithm() {
 
     // Create Lens -> ask Arthur for more info: https://github.com/ajuvercr
     const shapeQuads = await readFile("./shape.ttl", { encoding: "utf-8" });
+    // TODO: add typings
     const shapes = extractShapes(new Parser().parse(shapeQuads), {
-        // @ts-ignore
-        "Permission": permission => { permission.deonticConcept = ODRL.terms.permission; return permission },
-        // @ts-ignore
-        "Prohibition": prohibition => { prohibition.deonticConcept = ODRL.terms.prohibition; return prohibition },
-        // @ts-ignore
-        "Duty": duty => { duty.deonticConcept = ODRL.terms.duty; return duty }
+        "Permission": ((permission: Rule): Rule => { permission.deonticConcept = ODRL.terms.permission; return permission }) as (item: unknown) => unknown,
+        "Prohibition": ((prohibition: Rule): Rule => { prohibition.deonticConcept = ODRL.terms.prohibition; return prohibition }) as (item: unknown) => unknown,
+        "Duty": ((duty: Rule): Rule => { duty.deonticConcept = ODRL.terms.duty; return duty }) as (item: unknown) => unknown,
     }, { NamedCBD: NamedCBDLens });
     // console.log(Object.keys(shapes.lenses));
     const aggrementsLens = TypesLens([ODRL.terms.Agreement, ODRL.terms.Set, ODRL.terms.Policy, ODRL.terms.Offer]).thenAll(subject.then(shapes.lenses["Aggreement"]));
@@ -199,20 +197,48 @@ async function policy_Atomization_algorithm() {
         const reportStore = new Store(reasoningResult);
 
         const policyReportNodes = reportStore.getSubjects(RDF.type, REPORT.PolicyReport, null);
-        const policyReport = parseComplianceReport(policyReportNodes[0], new Store(reasoningResult))
+        const policyReport = parseComplianceReport(policyReportNodes[0], reportStore)
+
+        let candidateRuleReport: { id: Term, satisfiedPremises: number, ruleID: Term } = {
+             id: policyReport.ruleReport[0].id, 
+             satisfiedPremises: policyReport.ruleReport[0].premiseReport.filter(report => report.satisfactionState === SatisfactionState.Satisfied).length,
+             ruleID: policyReport.ruleReport[0].rule
+            }
+        let ruleReportQuads = reportStore.getQuads(policyReportNodes[0], REPORT.terms.ruleReport, null, null);
         // TODO: take blank node identifier of active rule
         // if none, take one with most premiseReports satsified -> TODO: optimisiation + will slow it down?
         for (const ruleReport of policyReport.ruleReport) {
-            console.log(ruleReport.activationState);
-            console.log("Blank node identifier: ", ruleReport.rule);
-            console.log("Original Rule ID: ", ruleID)
-            console.log();
+            // console.log("amount premises satisfied:", ruleReport.premiseReport.filter(report => report.satisfactionState === SatisfactionState.Satisfied).length);
+            // console.log("blanknode ID", ruleReport.rule);
+            
+            if (ruleReport.activationState === ActivationState.Active) {
+                candidateRuleReport.id = ruleReport.id
+                candidateRuleReport.ruleID = ruleReport.rule
+                break;
+            }
+            const premisesSatisfied = ruleReport.premiseReport.filter(report => report.satisfactionState === SatisfactionState.Satisfied).length
+            if (premisesSatisfied > candidateRuleReport.satisfiedPremises){
+                candidateRuleReport.id = ruleReport.id
+                candidateRuleReport.satisfiedPremises = premisesSatisfied
+                candidateRuleReport.ruleID = ruleReport.rule
 
+            }
         }
+        // TODO: remove all references to ruleReports from the policy report triples that cof <PolicyReport> report:ruleReport blank node.  (the atomized rule reports)
+        reportStore.removeQuads(ruleReportQuads);
+        // TODO: add candidate report back <PolicyReport> report:ruleReport <candidateRuleReport.id> .
+        reportStore.addQuad(policyReportNodes[0], REPORT.terms.ruleReport, candidateRuleReport.id as Quad_Object)
+        // TODO: remove quad <candidateRuleReport.id> report:rule <any> .
+        reportStore.removeQuad(candidateRuleReport.id as Quad_Subject, REPORT.terms.rule, candidateRuleReport.ruleID as Quad_Object)
+        // TODO: add quad <candidateRuleReport.id> report:rule <any> 
+        reportStore.addQuad(candidateRuleReport.id as Quad_Subject, REPORT.terms.rule, ruleID)
 
-        // TODO: use blank node identifier and transform all instances to original IRI
-
+        // extract CBD of reportStore with policy report ID
+        const outputReport = NamedCBDLens.execute({id: policyReportNodes[0], quads: reportStore.getQuads(null, null, null, null)})
         // TODO: instead of doing this outside of the ODRL, do it inside
+        console.log(writer.quadsToString(outputReport));
+        // console.log(writer.quadsToString(reportStore.getQuads(null, null, null, null)));
+        
     }
 
     console.timeEnd()
@@ -248,25 +274,25 @@ type PremiseReport = {
 // is it possible to just use REPORT.namespace + "term"?
 // https://github.com/microsoft/TypeScript/issues/40793
 enum RuleReportType {
-    PermissionReport = 'http://example.com/report/temp/PermissionReport',
-    ProhibitionReport = 'http://example.com/report/temp/ProhibitionReport',
-    ObligationReport = 'http://example.com/report/temp/ObligationReport',
+    PermissionReport = 'https://w3id.org/force/compliance-report#PermissionReport',
+    ProhibitionReport = 'https://w3id.org/force/compliance-report#ProhibitionReport',
+    ObligationReport = 'https://w3id.org/force/compliance-report#ObligationReport',
 }
 enum SatisfactionState {
-    Satisfied = 'http://example.com/report/temp/Satisfied',
-    Unsatisfied = 'http://example.com/report/temp/Unsatisfied',
+    Satisfied = 'https://w3id.org/force/compliance-report#Satisfied',
+    Unsatisfied = 'https://w3id.org/force/compliance-report#Unsatisfied',
 }
 
 enum PremiseReportType {
-    ConstraintReport = 'http://example.com/report/temp/ConstraintReport',
-    PartyReport = 'http://example.com/report/temp/PartyReport',
-    TargetReport = 'http://example.com/report/temp/TargetReport',
-    ActionReport = 'http://example.com/report/temp/ActionReport',
+    ConstraintReport = 'https://w3id.org/force/compliance-report#ConstraintReport',
+    PartyReport = 'https://w3id.org/force/compliance-report#PartyReport',
+    TargetReport = 'https://w3id.org/force/compliance-report#TargetReport',
+    ActionReport = 'https://w3id.org/force/compliance-report#ActionReport',
 }
 
 enum ActivationState {
-    Active = 'http://example.com/report/temp/Active',
-    Inactive = 'http://example.com/report/temp/Inactive',
+    Active = 'https://w3id.org/force/compliance-report#Active',
+    Inactive = 'https://w3id.org/force/compliance-report#Inactive',
 }
 
 function parseComplianceReport(identifier: Quad_Subject, store: Store): PolicyReport {
