@@ -72,15 +72,13 @@ async function main() {
 }
 // main()
 
-async function policy_Atomization_algorithm() {
-  const parser = new Parser()
-  const writer = new Writer();
-  const sotwQuads = parser.parse(sotw)
-  const requestQuads = parser.parse(request)
-  const evaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
-
-  console.time();
-
+async function policy_Atomization_algorithm() {<http://example.org/usagePolicy1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Set> .
+<http://example.org/usagePolicy1> <http://www.w3.org/ns/odrl/2/Permission> <http://example.org/permission1> .
+<http://example.org/permission1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Permission> .
+<http://example.org/permission1> <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/modify> .
+<http://example.org/permission1> <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/read> .
+<http://example.org/permission1> <http://www.w3.org/ns/odrl/2/target> <http://localhost:3000/alice/other/resource.txt> .
+<http://example.org/permission1> <http://www.w3.org/ns/odrl/2/assignee> <https://both.pod.knows.idlab.ugent.be/profile/card#me> .
   // extract all policyIDs -> for all rules in policies
   // TODO: do it via querying the store instead of using the Lenses
 
