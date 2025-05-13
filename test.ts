@@ -81,8 +81,8 @@ async function policy_Atomization_algorithm() {
 
   console.time();
 
-  // extract all policyIDs
-  // TODO:
+  // extract all policyIDs -> for all rules in policies
+  // TODO: do it via querying the store instead of using the Lenses
 
   // extract all rules, individually
 
@@ -123,6 +123,7 @@ async function policy_Atomization_algorithm() {
 
   // TODO: Automatically do this, based on all possible deontic concepts
   const rules: { policyID: Term, ruleID: Term, deonticConcept: Term, ruleQuads: Quad[] }[] = []
+  // NOTE: lens would not solve assetcollection extraction from complex target
   rules.push({
     policyID: policyTerm,
     ruleID: permissionID1,
