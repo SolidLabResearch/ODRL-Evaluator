@@ -1,0 +1,110 @@
+export const SHAPES: string = `@prefix rdfl: <https://w3id.org/rdf-lens/ontology#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/>.
+@prefix sh: <http://www.w3.org/ns/shacl#>.
+
+[ ] a sh:NodeShape;
+  sh:targetClass <Aggreement>;
+  sh:property [
+    sh:path odrl:permission; 
+    sh:name "permission";
+    sh:class <Permission>;
+  ], [
+    sh:path odrl:prohibition; 
+    sh:name "prohibition";
+    sh:class <Prohibition>;
+  ], [
+    sh:path odrl:duty; 
+    sh:name "duty";
+    sh:class <Duty>;
+  ], [
+    sh:path ( );
+    sh:name "identifier";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+    sh:minCount 1;
+  ].
+
+[ ] a sh:NodeShape;
+  sh:targetClass <Permission>;
+  sh:property [
+    sh:path [ sh:inversePath odrl:permission ];
+    sh:name "policyID";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path ( );
+    sh:name "ruleID";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path rdf:type;
+    sh:name "deonticConcept";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path ( );
+    sh:name "ruleQuads";
+    sh:class <NamedCBD>;
+    sh:maxCount 1;
+  ].
+
+[ ] a sh:NodeShape;
+  sh:targetClass <Prohibition>;
+  sh:property [
+    sh:path [ sh:inversePath odrl:prohibition ];
+    sh:name "policyID";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path ( );
+    sh:name "ruleID";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path rdf:type;
+    sh:name "deonticConcept";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path ( );
+    sh:name "ruleQuads";
+    sh:class <NamedCBD>;
+    sh:maxCount 1;
+  ].
+
+[ ] a sh:NodeShape;
+  sh:targetClass <Duty>;
+  sh:property [
+    sh:path [ sh:inversePath odrl:duty ];
+    sh:name "policyID";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path ( );
+    sh:name "ruleID";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path rdf:type;
+    sh:name "deonticConcept";
+    sh:datatype xsd:iri;
+    sh:maxCount 1;
+  ], [
+    sh:minCount 1;
+    sh:path ( );
+    sh:name "ruleQuads";
+    sh:class <NamedCBD>;
+    sh:maxCount 1;
+  ].
+
+`

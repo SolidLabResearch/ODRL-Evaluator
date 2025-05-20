@@ -4,7 +4,7 @@ import { Parser, Writer, Literal, NamedNode, Store, DataFactory, Quad_Subject, Q
 import { Quad, Term } from "@rdfjs/types";
 import { BasicLens, BasicLensM, CBDLens, Cont, extractShapes, match, pred, ShaclPath, subject } from "rdf-lens";
 import { ODRL, ODRLUC, RDF } from "./src/util/Vocabularies";
-import { DC, ODRLEngineMultipleSteps, ODRLEvaluator, REPORT } from "./dist";
+import { AtomizedEvaluatedRule, Atomizer, DC, ODRLEngineMultipleSteps, ODRLEvaluator, REPORT } from "./dist";
 const { namedNode, quad } = DataFactory
 
 const shape = `
@@ -130,6 +130,9 @@ type Rule = {
     deonticConcept: Term,
     ruleQuads: Quad[]
 }
+// TODO: clean up
+// TODO: fix the fact that for the same policy, I now get three policy reports. They should in fact be combined somehow?
+//  maybe have a list (atomized rule ID and actual rule ID, then evaluate and then go back?)
 async function policy_Atomization_algorithm() {
     const parser = new Parser()
     const writer = new Writer();
@@ -148,7 +151,6 @@ async function policy_Atomization_algorithm() {
 
     // Create Lens -> ask Arthur for more info: https://github.com/ajuvercr
     const shapeQuads = await readFile("./shape.ttl", { encoding: "utf-8" });
-    // TODO: add typings
     const shapes = extractShapes(new Parser().parse(shapeQuads), {
         "Permission": ((permission: Rule): Rule => { permission.deonticConcept = ODRL.terms.permission; return permission }) as (item: unknown) => unknown,
         "Prohibition": ((prohibition: Rule): Rule => { prohibition.deonticConcept = ODRL.terms.prohibition; return prohibition }) as (item: unknown) => unknown,
@@ -237,7 +239,7 @@ async function policy_Atomization_algorithm() {
         const outputReport = NamedCBDLens.execute({id: policyReportNodes[0], quads: reportStore.getQuads(null, null, null, null)})
         // TODO: instead of doing this outside of the ODRL, do it inside
         console.log(writer.quadsToString(outputReport));
-        // console.log(writer.quadsToString(reportStore.getQuads(null, null, null, null)));
+
         
     }
 
@@ -245,8 +247,34 @@ async function policy_Atomization_algorithm() {
 
 
 }
-policy_Atomization_algorithm()
+// policy_Atomization_algorithm()
 
+
+async function policyAtomizationv2(){
+    const parser = new Parser()
+    const writer = new Writer();
+    // ODRL Evaluator inputs
+    const sotwQuads = parser.parse(sotw)
+    const requestQuads = parser.parse(request)
+    const evaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
+    const compactPolicyQuads = parser.parse(compactPolicy)
+
+    const atomizer = new Atomizer();
+    const policies = await atomizer.atomizePolicies(compactPolicyQuads);
+
+    const atomizedEvaluatedRules: AtomizedEvaluatedRule[] = []
+    for (const policy of policies) {
+        const report = await evaluator.evaluate(policy.atomizedRuleQuads, requestQuads, sotwQuads)
+        atomizedEvaluatedRules.push({
+            ...policy,
+            policyReportQuads: report
+        })
+    }
+
+    const report = atomizer.cleanUp(atomizedEvaluatedRules);
+    console.log(writer.quadsToString(report));
+}
+policyAtomizationv2()
 
 type PolicyReport = {
     id: NamedNode;
