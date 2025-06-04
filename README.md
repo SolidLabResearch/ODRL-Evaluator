@@ -142,6 +142,24 @@ const engine = new ODRLEngineMultipleSteps()
 const report = await engine.evaluate(input);
 ```
 
+
+## Cite
+
+If you are using or extending the ODRL Evaluator as part of a scientific publication,
+we would appreciate a citation of our [article](https://raw.githubusercontent.com/woutslabbinck/papers/main/2025/Interoperable-Interpretation-and-Evaluation-of-ODRL-Policies.pdf).
+
+```bibtex
+@inproceedings{slabbinck_interoperable_2025,
+	title = {Interoperable Interpretation and Evaluation of ODRL Policies},
+	isbn = {978-3-031-94578-6},
+	doi = {10.1007/978-3-031-94578-6_11},
+	booktitle = {The Semantic Web},
+	author = {Slabbinck, Wout and Rojas Meléndez, Julián and Esteves, Beatriz and Colpaert, Pieter and Verborgh, Ruben},
+	year = {2025},
+	pages = {192--209},
+}
+```
+
 ## Feedback and questions
 
 Do not hesitate to [report a bug](https://github.com/SolidLabResearch/ODRL-Evaluator/issues).
