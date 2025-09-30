@@ -1,10 +1,10 @@
-import { Parser, Store, Writer } from "n3";
-import { AtomizedEvaluatedRule, AtomizedRule, Atomizer } from "../../../src/evaluator/Atomizer";
-import { EyeReasoner } from "../../../src/reasoner/EyeReasoner";
+import { Parser, Store } from "n3";
+import { ActivationState, parseComplianceReport, SatisfactionState } from "../../../src";
+import { AtomizedEvaluatedRule, Atomizer } from "../../../src/evaluator/Atomizer";
 import { ODRLEngineMultipleSteps } from "../../../src/evaluator/Engine";
 import { ODRLEvaluator } from "../../../src/evaluator/Evaluate";
+import { EyeReasoner } from "../../../src/reasoner/EyeReasoner";
 import { ODRL, RDF, REPORT } from "../../../src/util/Vocabularies";
-import { ActivationState, parseComplianceReport, SatisfactionState } from "../../../src";
 
 const normalPolicy = `
 @prefix ex: <http://example.org/>.
@@ -89,9 +89,9 @@ temp:currentTime dct:issued "2024-02-12T11:20:10.999Z"^^xsd:dateTime.
 `
 
 describe('The Atomizer class', () => {
-    const eye = new EyeReasoner('eye', ["--quiet", "--nope", "--pass-only-new"])
-    const engine = new ODRLEngineMultipleSteps({ reasoner: eye })
-    const evaluator = new ODRLEvaluator(engine) // TODO: make this the local eye version
+    // const eye = new EyeReasoner('eye', ["--quiet", "--nope", "--pass-only-new"])
+    const engine = new ODRLEngineMultipleSteps()
+    const evaluator = new ODRLEvaluator(engine)
 
     const atomizer = new Atomizer();
     const parser = new Parser();
@@ -253,7 +253,7 @@ describe('The Atomizer class', () => {
         })
 
         it('on inactive evaluation, picks the rule report with most premises active.', async () => {
-            const policy= `
+            const policy = `
 @prefix ex: <http://example.org/>.
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 
