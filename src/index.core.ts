@@ -13,6 +13,7 @@ export * from './shapes/Shapes'
 
 export * from './util/Notation3Util'
 export * from './util/Vocabularies'
+export * from './util/Prefixes'
 
 export * from './util/report/ComplianceReportTypes'
 export * from './util/report/ComplianceReportUtil'

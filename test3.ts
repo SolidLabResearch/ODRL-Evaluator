@@ -1,5 +1,6 @@
 import { Parser, Writer } from "n3";
-import { ODRLEvaluator, ODRLEngineMultipleSteps, Atomizer, AtomizedEvaluatedRule } from "./dist";
+import { ODRLEvaluator, ODRLEngineMultipleSteps, Atomizer, AtomizedEvaluatedRule, prefixes, parseComplianceReport } from "./src";
+import { write } from '@jeswr/pretty-turtle';
 
 const sotw = `
 @prefix temp: <http://example.com/request/>.
@@ -43,6 +44,14 @@ ex:permission2 a odrl:Permission ;
   odrl:assignee ex:bob ;
   odrl:target <http://localhost:3000/alice/other/resource.txt> ;
   odrl:action odrl:use .
+
+<urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> a odrl:Set;
+    odrl:permission <urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001>.
+<urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001> a odrl:Permission;
+    odrl:action odrl:read;
+    odrl:target ex:x;
+    odrl:assignee ex:alice;
+    odrl:assigner ex:zeno.
 `
 
 async function main(){
@@ -56,7 +65,7 @@ async function main(){
 
     const atomizer = new Atomizer();
     const policies = await atomizer.atomizePolicies(compactPolicyQuads);
-
+  
     const atomizedEvaluatedRules: AtomizedEvaluatedRule[] = []
     for (const policy of policies) {
         const report = await evaluator.evaluate(policy.atomizedRuleQuads, requestQuads, sotwQuads)
@@ -64,9 +73,19 @@ async function main(){
             ...policy,
             policyReportQuads: report
         })
+
+        console.log(policy.ruleID.value);
+        
+        console.log(writer.quadsToString(policy.atomizedRuleQuads));
+        console.log(await write(report, {prefixes}));
+console.log();
+        
     }
 
-    const report = atomizer.cleanUp(atomizedEvaluatedRules);
-    console.log(writer.quadsToString(report));
+
+    const report = atomizer.mergeAtomizedRuleReports(atomizedEvaluatedRules);
+
+    console.log(await write(report, {prefixes}));
+
 }
 main()

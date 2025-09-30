@@ -6,28 +6,52 @@ import { ODRL, RDF, REPORT } from "../util/Vocabularies";
 const { namedNode, quad } = DataFactory
 
 import { PolicyAtomizer } from "odrl-atomizer";
-import { ActivationState, SatisfactionState } from "../util/report/ComplianceReportTypes";
+import { ActivationState, PolicyReport, SatisfactionState } from "../util/report/ComplianceReportTypes";
 import { parseComplianceReport } from "../util/report/ComplianceReportUtil";
+import { replaceSubject } from "../util/RDFUtil";
 
 
+/**
+ * Represents an ODRL policy containing its identifier and categorized rules.
+ */
 export type Policy = {
+    /** Unique identifier for the policy */
     identifier: Term,
+    /** List of permission rules associated with the policy */
     permission: Rule[],
+    /** List of prohibition rules associated with the policy */
     prohibition: Rule[],
+    /** List of duty rules associated with the policy */
     duty: Rule[]
 }
+
+/**
+ * Represents a single ODRL rule.
+ */
 export type Rule = {
+    /** Identifier of the policy this rule belongs to */
     policyID: Term,
+    /** Unique identifier for the rule */
     ruleID: Term,
+    /** Deontic concept (e.g., permission, prohibition, duty) */
     deonticConcept: Term,
+    /** RDF quads that define the rule */
     ruleQuads: Quad[]
 }
 
+/**
+ * Represents an ODRL Rule and its atomized quads
+ */
 export type AtomizedRule = Rule & {
     atomizedRuleQuads: Quad[];
 }
 
+
+/**
+ * Represents an atomized rule that has also been evaluated.
+ */
 export type AtomizedEvaluatedRule = AtomizedRule & {
+    /** RDF quads representing the evaluation report of the policy */
     policyReportQuads: Quad[];
 }
 
@@ -71,6 +95,15 @@ export class Atomizer {
         this.shapes = SHAPES;
     }
 
+    /**
+     * Decomposes a compact ODRL Rules from an ODRL policy into a set of atomic rules,
+     * where each rule has one action, one target and one assignee.
+     *
+     * Checkout ODRL Rule Composition §2.7
+     * @param {Quad[]} policy - RDF quads representing an ODRL policy with compact rules.
+     * @returns {Promise<AtomizedRule[]>} A promise resolving to an array of atomized rules.
+     *
+     */
     public async atomizePolicies(policy: Quad[]): Promise<AtomizedRule[]> {
         const parser = new Parser()
 
@@ -106,50 +139,95 @@ export class Atomizer {
         }
         return atomizedRules
     }
-    // TODO: rename
-    public cleanUp(atomizedEvaluatedRules: AtomizedEvaluatedRule[]): Quad[] {
+
+    /**
+     * Consolidates and normalizes compliance reports from atomized and evaluated ODRL rules.
+     * 
+     * For each rule, it ensures that only one unified policy report is retained per policy,
+     * selects the most relevant rule report (active or most satisfied), replaces blank node
+     * identifiers with consistent policy-level identifiers, and merges the results.
+     *
+     * It furthermore ensures that each policy has one Policy Compliance Report
+     * 
+     * @param {AtomizedEvaluatedRule[]} atomizedEvaluatedRules - Array of evaluated rules with associated policy reports.
+     * @returns {Quad[]} A flattened array of RDF quads representing the cleaned-up, unified compliance reports.
+     */
+    public mergeAtomizedRuleReports(atomizedEvaluatedRules: AtomizedEvaluatedRule[]): Quad[] {
         const report: Quad[] = []
+        // map that contains for each policy one Report Identifier. 
+        // Used to solve the following issue: One ODRL Policy has multiple Policy Reports at the same time
+        const reportMap: Map<string, Term> = new Map();
+
         for (const rule of atomizedEvaluatedRules) {
             const reportStore = new Store(rule.policyReportQuads)
             const policyReportNodes = reportStore.getSubjects(RDF.type, REPORT.PolicyReport, null);
-            const policyReport = parseComplianceReport(policyReportNodes[0], reportStore)
+            const crPolicyIdentifier = policyReportNodes[0] as NamedNode
 
-            // take blank node identifier of active rule
-            // if none, ake one with most premiseReports satisfied 
-            let candidateRuleReport: { id: Term, satisfiedPremises: number, ruleID: Term } = {
-                id: policyReport.ruleReport[0].id,
-                satisfiedPremises: policyReport.ruleReport[0].premiseReport.filter(report => report.satisfactionState === SatisfactionState.Satisfied).length,
-                ruleID: policyReport.ruleReport[0].rule
+            const policyReport = parseComplianceReport(crPolicyIdentifier, reportStore)
+            const policyIdentifier = policyReport.policy.id
+
+            const actualRuleIdentifier = rule.ruleID as NamedNode;
+
+            if (!reportMap.has(policyIdentifier)) {
+                reportMap.set(policyIdentifier, crPolicyIdentifier)
             }
-            let ruleReportQuads = reportStore.getQuads(policyReportNodes[0], REPORT.terms.ruleReport, null, null);
 
-            for (const ruleReport of policyReport.ruleReport) {
-                if (ruleReport.activationState === ActivationState.Active) {
-                    candidateRuleReport.id = ruleReport.id
-                    candidateRuleReport.ruleID = ruleReport.rule
-                    break;
-                }
+            const normalizedReport = selectBestRuleReport(reportStore, crPolicyIdentifier, actualRuleIdentifier)
 
-                const premisesSatisfied = ruleReport.premiseReport.filter(report => report.satisfactionState === SatisfactionState.Satisfied).length
-                if (premisesSatisfied > candidateRuleReport.satisfiedPremises) {
-                    candidateRuleReport.id = ruleReport.id
-                    candidateRuleReport.satisfiedPremises = premisesSatisfied
-                    candidateRuleReport.ruleID = ruleReport.rule
-                }
-            }
-            // remove all references to Rule Reports with blank node identifiers.
-            reportStore.removeQuads(ruleReportQuads);
-            // add candidate report to the Policy Report (either the active rule report or the one with most premise reports satisfied) .
-            reportStore.addQuad(policyReportNodes[0], REPORT.terms.ruleReport, candidateRuleReport.id as Quad_Object)
-            // remove the blank node identifier reference from the Rule Report 
-            reportStore.removeQuad(candidateRuleReport.id as Quad_Subject, REPORT.terms.rule, candidateRuleReport.ruleID as Quad_Object)
-            // add true identifier of the ODRL:Rule back to the Rule Report 
-            reportStore.addQuad(candidateRuleReport.id as Quad_Subject, REPORT.terms.rule, rule.ruleID as Quad_Object)
+            // replace report ID with a unified report ID
+            //@ts-ignore
+            const outputReport = replaceSubject(normalizedReport, crPolicyIdentifier, reportMap.get(policyIdentifier) as NamedNode)
 
-            // extract CBD of reportStore with policy report ID
-            const outputReport = NamedCBDLens.execute({ id: policyReportNodes[0], quads: reportStore.getQuads(null, null, null, null) })
             report.push(...outputReport)
         }
         return report
     }
+}
+/**
+ * Selects the most relevant rule report from a policy report—either the active one,
+ * or the one with the most satisfied premises—and replaces blank node identifiers
+ * with original rule identifiers in the RDF store.
+ *
+ * @param {Store} reportStore - RDF store containing the full report quads.
+ * @param {NamedNode} reportIdentifier - RDF subjects representing the policy report.
+ * @param {NamedNode} ruleIdentifier - The original rule identifier.
+ * @returns {Quad[]} Extracted RDF quads representing the finalized policy report.
+ */
+function selectBestRuleReport(reportStore: Store, reportIdentifier: NamedNode, ruleIdentifier: NamedNode): Quad[] {
+    const policyReport = parseComplianceReport(reportIdentifier, reportStore)
+
+    // if none, take one with most premiseReports satisfied 
+    let candidateRuleReport: { id: Term, satisfiedPremises: number, ruleID: Term } = {
+        id: policyReport.ruleReport[0].id,
+        satisfiedPremises: policyReport.ruleReport[0].premiseReport.filter(report => report.satisfactionState === SatisfactionState.Satisfied).length,
+        ruleID: policyReport.ruleReport[0].rule
+    }
+    let ruleReportQuads = reportStore.getQuads(reportIdentifier, REPORT.terms.ruleReport, null, null);
+
+    for (const ruleReport of policyReport.ruleReport) {
+        if (ruleReport.activationState === ActivationState.Active) {
+            candidateRuleReport.id = ruleReport.id
+            candidateRuleReport.ruleID = ruleReport.rule
+            break;
+        }
+
+        const premisesSatisfied = ruleReport.premiseReport.filter(report => report.satisfactionState === SatisfactionState.Satisfied).length
+        if (premisesSatisfied > candidateRuleReport.satisfiedPremises) {
+            candidateRuleReport.id = ruleReport.id
+            candidateRuleReport.satisfiedPremises = premisesSatisfied
+            candidateRuleReport.ruleID = ruleReport.rule
+        }
+    }
+    // remove all references to Rule Reports with blank node identifiers.
+    reportStore.removeQuads(ruleReportQuads);
+    // add candidate report to the Policy Report (either the active rule report or the one with most premise reports satisfied) .
+    reportStore.addQuad(reportIdentifier, REPORT.terms.ruleReport, candidateRuleReport.id as Quad_Object)
+    // remove the blank node identifier reference from the Rule Report 
+    reportStore.removeQuad(candidateRuleReport.id as Quad_Subject, REPORT.terms.rule, candidateRuleReport.ruleID as Quad_Object)
+    // add true identifier of the ODRL:Rule back to the Rule Report 
+    reportStore.addQuad(candidateRuleReport.id as Quad_Subject, REPORT.terms.rule, ruleIdentifier as Quad_Object)
+
+    // extract CBD of reportStore with policy report ID
+    const extractedReport = NamedCBDLens.execute({ id: reportIdentifier, quads: reportStore.getQuads(null, null, null, null) })
+    return extractedReport
 }
