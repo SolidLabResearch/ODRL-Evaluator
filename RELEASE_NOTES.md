@@ -8,6 +8,12 @@
   - creation of the `Atomizer` class in `src/evaluator/Atomizer.ts`
   - creation of the `CompositeODRLEvaluator` class in `src/evaluator/Evaluate.ts`
   - example script in `demo/compact-rules.ts`
+- Creation of the script `MakeShapes` that exports shacl shape as a constant `SHAPES` to be used in the browser
+  - also includes a simplified shape file of ODRL at `src/shapes/shape.ttl`
+- Creation of utility to work with Compliance Report Models
+  - the function `parseComplianceReport` in `src/util/report/ComplianceReportUtil.ts`
+- exports `prefixes` a set of commenly used prefixes used in ODRL and ODRL Evaluation
+- expands the vocabulary util to also include the Compliance Report and the full ODRL 2.2 Vocabulary
 
 ## v0.3.0
 

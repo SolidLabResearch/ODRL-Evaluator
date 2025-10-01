@@ -1,17 +1,6 @@
-# TODO List Atomization
+# Evaluating ODRL Compact Rules through Atomization
 
-- [x] create demo in `./demo/` directory (from test3.ts)
-- [x] create Atomizer class
-- [x] add properly in ODRL Evaluater by creating a specific ODRL Evaluator
-- [x] add documentation, how does it work
-- [x] create some tests
-- [ ] merge with main
-- [x] remove `test.ts`, `test2.ts` and `test3.ts`
-- [ ] publish v0.4.0
-
-## Documentation
-
-### Compact Rules Problem
+## Compact Rules Problem
 The ODRL Evaluator was designed for evaluating ODRL policies with atomic rules.
 As such, policies with compact rules produced incorrect answers during evaluation (see [issue](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/3)).
 
@@ -20,7 +9,7 @@ Request policy evaluation for a compact rule with two distinct actions would res
 
 As such requesting a read action to rules with both read and write actions would always result into an inactive state at the rule level report.
 
-### Solution through atomization
+## Solution through atomization
 
 The issue was resolved through reducing each compact rule to a set of **atomic** rules prior to evaluation.
 
@@ -49,6 +38,9 @@ const odrlEvaluator = new CompositeODRLEvaluator(new ODRLEngineMultipleSteps());
 const report = await odrlEvaluator.evaluate(compactPolicy, request, sotw);
 
 ```
+
+### Detailed description of the solution
+NOTE: this is implemented in the `Atomizer` class
 
 This is how it works in more details:
 
