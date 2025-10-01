@@ -8,7 +8,7 @@ const policy = `
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix ex: <http://example.org/> .
 @prefix dct: <http://purl.org/dc/terms/> .
-@prefix odrluc: <https://w3id.org/force/odrlproposed#> .
+@prefix odrluc: <https://w3id.org/force/odrl3proposal#> .
 
 <urn:uuid:32127a3f-5296-4cc6-b9d6-ef6c647a721d> a odrl:Set ;
   odrl:uid <urn:uuid:32127a3f-5296-4cc6-b9d6-ef6c647a721d> ;

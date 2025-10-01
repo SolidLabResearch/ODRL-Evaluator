@@ -219,7 +219,7 @@ export const ODRL = createVocabulary(
     'xone'
 )
 
-export const ODRLUC = createVocabulary("https://w3id.org/force/odrlproposed#",
+export const ODRLUC = createVocabulary("https://w3id.org/force/odrl3proposal#",
     "OperandReference",
     "reference",
     "path"

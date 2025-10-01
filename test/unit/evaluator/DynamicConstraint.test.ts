@@ -7,7 +7,7 @@ describe('The Dynamic Constraints materialize function', () => {
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix ex: <http://example.org/> .
 @prefix dct: <http://purl.org/dc/terms/> .
-@prefix odrluc: <https://w3id.org/force/odrlproposed#> .
+@prefix odrluc: <https://w3id.org/force/odrl3proposal#> .
 
 <urn:uuid:32127a3f-5296-4cc6-b9d6-ef6c647a721d> a odrl:Set ;
   odrl:uid <urn:uuid:32127a3f-5296-4cc6-b9d6-ef6c647a721d> ;
@@ -70,7 +70,7 @@ ex:externalSource ex:updatedValue "2018-02-12T11:20:10.999Z"^^<http://www.w3.org
     it("throws an error when no external source property is provided.", () => {
         const operandReference = `
 @prefix ex: <http://example.org/> .
-@prefix odrluc: <https://w3id.org/force/odrlproposed#> .    
+@prefix odrluc: <https://w3id.org/force/odrl3proposal#> .    
 ex:operandReference1 a odrluc:OperandReference ;
     odrluc:path ex:updatedValue .`
 
@@ -81,7 +81,7 @@ ex:operandReference1 a odrluc:OperandReference ;
     it("throws nope when no path property is provided.", () => {
         const operandReference = `
 @prefix ex: <http://example.org/> .
-@prefix odrluc: <https://w3id.org/force/odrlproposed#> .    
+@prefix odrluc: <https://w3id.org/force/odrl3proposal#> .    
 ex:operandReference1 a odrluc:OperandReference ;
     odrluc:reference ex:externalSource .`
 
