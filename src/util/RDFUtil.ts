@@ -1,20 +1,20 @@
-import {DataFactory, Quad, Quad_Object, Store, Term, Writer} from "n3";
-import {ParseOptions} from "rdf-parse/lib/RdfParser";
-import {readFileSync} from 'fs';
+import { DataFactory, Quad, Quad_Object, Store, Term, Writer, NamedNode } from "n3";
+import { ParseOptions } from "rdf-parse/lib/RdfParser";
+import { readFileSync } from 'fs';
 import * as Path from "path";
-import {rdfParser} from "rdf-parse";
-import {v4} from "uuid";
+import { rdfParser } from "rdf-parse";
+import { v4 } from "uuid";
 
 const namedNode = DataFactory.namedNode;
 const storeStream = require("rdf-store-stream").storeStream;
 const streamifyString = require('streamify-string');
 
 export async function turtleStringToStore(text: string, baseIRI?: string): Promise<Store> {
-    return await stringToStore(text, {contentType: 'text/turtle', baseIRI});
+    return await stringToStore(text, { contentType: 'text/turtle', baseIRI });
 }
 
 export async function ldjsonToStore(text: string, baseIRI?: string): Promise<Store> {
-    return await stringToStore(text, {contentType: 'application/ld+json', baseIRI});
+    return await stringToStore(text, { contentType: 'application/ld+json', baseIRI });
 }
 
 /**
@@ -45,7 +45,7 @@ export async function fileAsStore(path: string, options?: { contentType?: string
     // text/turtle default, otherwise what is passed
     const contentType = options ? options.contentType ?? 'text/turtle' : 'text/turtle';
     const text = readFileSync(Path.join(path), "utf8");
-    return await stringToStore(text, {contentType, baseIRI});
+    return await stringToStore(text, { contentType, baseIRI });
 }
 
 
@@ -68,33 +68,33 @@ export function resourceToOptimisedTurtle(resource: Quad[], _prefixes: any): str
     const named = new Map<string, Map<string, Quad_Object[]>>();
     const blank = new Map<string, Map<string, Quad_Object[]>>();
     addElements:
-        for (const quad of resource) {
-            const data = quad.subject.termType == "BlankNode" ? blank : named;
-            if (data.has(quad.subject.id)) {
-                const props = data.get(quad.subject.id)!;
-                if (props.has(quad.predicate.id)) {
-                    // check if value is already in array, if it is, dont add it anymore
-                    const objs = props.get(quad.predicate.id)!;
-                    for (const obj of objs) {
-                        // while it might offer better performance to use a set instead
-                        // of an array, the custom type Quad_Object would not work correctly
-                        // with Set.has(), and thus would require a seperate container storing
-                        // the IDs (which would in turn not be memory efficient)
-                        if (obj.equals(quad.object)) {
-                            continue addElements;
-                        }
+    for (const quad of resource) {
+        const data = quad.subject.termType == "BlankNode" ? blank : named;
+        if (data.has(quad.subject.id)) {
+            const props = data.get(quad.subject.id)!;
+            if (props.has(quad.predicate.id)) {
+                // check if value is already in array, if it is, dont add it anymore
+                const objs = props.get(quad.predicate.id)!;
+                for (const obj of objs) {
+                    // while it might offer better performance to use a set instead
+                    // of an array, the custom type Quad_Object would not work correctly
+                    // with Set.has(), and thus would require a seperate container storing
+                    // the IDs (which would in turn not be memory efficient)
+                    if (obj.equals(quad.object)) {
+                        continue addElements;
                     }
-                    objs.push(quad.object);
-                } else {
-                    props.set(quad.predicate.id, new Array(quad.object));
                 }
+                objs.push(quad.object);
             } else {
-                data.set(quad.subject.id, new Map([[quad.predicate.id, new Array(quad.object)]]));
+                props.set(quad.predicate.id, new Array(quad.object));
             }
+        } else {
+            data.set(quad.subject.id, new Map([[quad.predicate.id, new Array(quad.object)]]));
         }
+    }
     // converting all the entries of the blank map first
     // with the ordered view done, a more compact turtle string can be generated
-    const writer = new Writer({prefixes: _prefixes});
+    const writer = new Writer({ prefixes: _prefixes });
 
     named.forEach((properties, subject) => {
         properties.forEach((objects, predicate) => {
@@ -200,6 +200,37 @@ export function uuidify(quads: Quad[]): Quad[] {
         store.removeQuads(triplesWhereObject);
         store.addQuads(replacedTriplesObject);
     }
+
+    return store.getQuads(null, null, null, null);
+}
+
+/**
+ * Replaces all occurrences of a given subject node in a set of RDF quads with a new subject node.
+ * 
+ * This function performs two transformations:
+ * 1. Replaces all quads where the `from` node appears as the subject with the `to` node.
+ * 2. Replaces all quads where the `from` node appears as the object with the `to` node.
+ * 
+ * The function returns a new array of quads with the substitutions applied.
+ *
+ * @param {Quad[]} quads - An array of RDF quads to process.
+ * @param {NamedNode} from - The subject node to be replaced.
+ * @param {NamedNode} to - The new subject node to replace with.
+ * @returns {Quad[]} A new array of RDF quads with the subject and object substitutions applied.
+ */
+export function replaceSubject(quads: Quad[], from: NamedNode, to: NamedNode): Quad[] {
+    const store = new Store(quads);
+    const triplesWhereSubject = store.getQuads(from, null, null, null);
+    const replacedTriplesSubject = triplesWhereSubject.map(quad => DataFactory.quad(to, quad.predicate, quad.object));
+
+    store.removeQuads(triplesWhereSubject);
+    store.addQuads(replacedTriplesSubject);
+
+    const triplesWhereObject = store.getQuads(null, null, from, null);
+    const replacedTriplesObject = triplesWhereObject.map(quad => DataFactory.quad(quad.subject, quad.predicate, to));
+
+    store.removeQuads(triplesWhereObject);
+    store.addQuads(replacedTriplesObject);
 
     return store.getQuads(null, null, null, null);
 }

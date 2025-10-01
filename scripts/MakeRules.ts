@@ -4,7 +4,7 @@ import { combineNotation3Files } from "../src/util/Notation3Util";
 
 const ruleDir = path.join(path.dirname(__filename), "..", "src", "rules");
 
-// initialize the rules as ts class such that it can be used in the browser
+// initialize the rules as a ts file (constant)such that it can be used in the browser
 function rules() {
     const multipleRunRules = createMultipleRunRules();
     const simpleRules = createSimpleRules();
@@ -37,3 +37,5 @@ function createSimpleRules(): string {
 }   
 
 rules()
+
+

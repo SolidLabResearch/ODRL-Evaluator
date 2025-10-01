@@ -1,6 +1,6 @@
 {
   "name": "odrl-evaluator",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "An open implementation of an ODRL Evaluator that evaluates ODRL policies by generating Compliance Reports",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,8 +12,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run clean && npm run makeRules && tsc",
+    "build": "npm run clean && npm run makeRules && npm run makeShapes && tsc",
     "makeRules": "ts-node scripts/MakeRules.ts ",
+    "makeShapes": "ts-node scripts/MakeShapes.ts ",
     "clean": "rm -rf ./dist",
     "demo:test-engine": "ts-node demo/test-n3-engine.ts",
     "demo:test-evaluator": "ts-node demo/test-n3-evaluator.ts",
@@ -46,10 +47,12 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@jeswr/pretty-turtle": "^1.8.2",
     "@rdfjs/types": "^1.1.0",
     "@types/n3": "^1.16.3",
     "eyereasoner": "^16.18.4",
     "n3": "^1.20.4",
+    "odrl-atomizer": "^0.1.2",
     "rdf-isomorphic": "^1.3.1",
     "rdf-lens": "^1.3.5",
     "rdf-parse": "^3.0.0",

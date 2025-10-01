@@ -1,7 +1,8 @@
 import type { Quad } from '@rdfjs/types';
-import { ODRLEngine, Engine} from './Engine';
+import { ODRLEngine, Engine } from './Engine';
 import { RDFValidator, TripleTermValidator, SHACLValidator } from './Validate';
 import { materializePolicy } from './DynamicConstraint';
+import { AtomizedEvaluatedRule, Atomizer } from './Atomizer';
 
 export interface Evaluator {
     /**
@@ -76,5 +77,31 @@ export class ODRLEvaluator implements Evaluator {
         // Is there any way to detect the missing information?
 
         return evaluation;
+    }
+}
+
+/**
+ * ODRL Evaluator that deals with § 2.7 Policy Rule Composition (https://www.w3.org/TR/odrl-model/#composition)
+ */
+export class CompositeODRLEvaluator extends ODRLEvaluator {
+    constructor(engine = new ODRLEngine()) {
+        super(engine);
+    }
+
+    public async evaluate(policy: Quad[], request: Quad[], state: Quad[]): Promise<Quad[]> {
+        const atomizer = new Atomizer();
+        const atomizedRules = await atomizer.atomizePolicies(policy);
+
+        const atomizedEvaluatedRules: AtomizedEvaluatedRule[] = []
+        for (const policy of atomizedRules) {
+            const report = await super.evaluate(policy.atomizedRuleQuads, request, state);
+            atomizedEvaluatedRules.push({
+                ...policy,
+                policyReportQuads: report
+            });
+        }
+        
+        const report = atomizer.mergeAtomizedRuleReports(atomizedEvaluatedRules);
+        return report;
     }
 }
