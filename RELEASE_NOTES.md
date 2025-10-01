@@ -1,5 +1,14 @@
 # ODRL Evaluator
 
+## v0.4.0
+
+### New features
+
+- Support for [Policy Rule Composition ](https://www.w3.org/TR/odrl-model/#composition)
+  - creation of the `Atomizer` class in `src/evaluator/Atomizer.ts`
+  - creation of the `CompositeODRLEvaluator` class in `src/evaluator/Evaluate.ts`
+  - example script in `demo/compact-rules.ts`
+
 ## v0.3.0
 
 ### New features

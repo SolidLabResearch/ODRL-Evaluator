@@ -1,12 +1,12 @@
 # TODO List Atomization
 
-- [ ] create demo in `./demo/` directory (from test3.ts)
+- [x] create demo in `./demo/` directory (from test3.ts)
 - [x] create Atomizer class
 - [x] add properly in ODRL Evaluater by creating a specific ODRL Evaluator
 - [x] add documentation, how does it work
 - [x] create some tests
 - [ ] merge with main
-- [ ] remove `test.ts`, `test2.ts` and `test3.ts`
+- [x] remove `test.ts`, `test2.ts` and `test3.ts`
 - [ ] publish v0.4.0
 
 ## Documentation
