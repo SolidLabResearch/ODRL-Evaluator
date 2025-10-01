@@ -1,10 +1,10 @@
 import "jest-rdf";
 import { Parser, Quad } from "n3";
-import { blanknodeify, ODRLEngineMultipleSteps, ODRLEvaluator } from "../../src";
+import { blanknodeify, CompositeODRLEvaluator, ODRLEngineMultipleSteps, ODRLEvaluator } from "../../src";
 
+const parser = new Parser()
 describe('The default ODRL evaluator', () => {
     const odrlEvaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
-    const parser = new Parser()
 
     it('handles skos exact match.', async () => {
         const odrlPolicyText = `
@@ -59,7 +59,7 @@ describe('The default ODRL evaluator', () => {
         const stateOfTheWorldQuads = parser.parse(stateOfTheWorldText);
 
         const expectedReportQuads = parser.parse(expectedReport);
-        const report =  await odrlEvaluator.evaluate(
+        const report = await odrlEvaluator.evaluate(
             odrlPolicyQuads,
             odrlRequestQuads,
             stateOfTheWorldQuads);
@@ -161,11 +161,144 @@ describe('The default ODRL evaluator', () => {
         const stateOfTheWorldQuads = parser.parse(sotw);
 
         const expectedReportQuads = parser.parse(expectedReport);
-        const report =  await odrlEvaluator.evaluate(
+        const report = await odrlEvaluator.evaluate(
             odrlPolicyQuads,
             odrlRequestQuads,
             stateOfTheWorldQuads);
         expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
-
     })
+})
+
+describe('The Composite ODRL Evaluator', () => {
+    it('handles policies with compact rules.', async () => {
+        const odrlEvaluator = new CompositeODRLEvaluator(new ODRLEngineMultipleSteps());
+
+        const sotw = `
+@prefix temp: <http://example.com/request/>.
+@prefix dct: <http://purl.org/dc/terms/>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+
+temp:currentTime dct:issued "2024-02-12T11:20:10.999Z"^^xsd:dateTime.
+`
+
+        const request = `
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<urn:ucp:policy:2a797ad7-232a-4e1f-853f-81388969e4a1> a odrl:Request;
+    odrl:permission <urn:ucp:rule:e3ba21f7-57b0-4a43-988a-3221aba858ef>.
+<urn:ucp:rule:e3ba21f7-57b0-4a43-988a-3221aba858ef> a odrl:Permission;
+    odrl:action odrl:read;
+    odrl:target <http://localhost:3000/alice/other/resource.txt>;
+    odrl:assignee <https://both.pod.knows.idlab.ugent.be/profile/card#me>.
+`
+        const compactPolicy = `
+@prefix ex: <http://example.org/>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+ex:usagePolicy1 a odrl:Agreement ;
+  odrl:permission ex:permission1, ex:permission2 ;
+  odrl:prohibition <urn:uuid:9477c997-adc1-4d64-a12c-fa9e0f6b80f0> .
+
+
+ex:permission1 a odrl:Permission ;
+  odrl:action odrl:modify, odrl:read ;
+  odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+  odrl:assignee <https://both.pod.knows.idlab.ugent.be/profile/card#me> .
+
+ex:permission2 a odrl:Permission ;
+  odrl:action odrl:modify ;
+  odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+  odrl:assignee <https://modify.pod.knows.idlab.ugent.be/profile/card#me> .
+
+
+<urn:uuid:9477c997-adc1-4d64-a12c-fa9e0f6b80f0> a odrl:Prohibition ;
+  odrl:assignee ex:bob ;
+  odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+  odrl:action odrl:use .
+
+<urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> a odrl:Set;
+    odrl:permission <urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001>.
+<urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001> a odrl:Permission;
+    odrl:action odrl:read;
+    odrl:target ex:x;
+    odrl:assignee ex:alice;
+    odrl:assigner ex:zeno.
+`
+        const expectedReport = `
+@prefix cr: <https://w3id.org/force/compliance-report#> .
+@prefix dct: <http://purl.org/dc/terms/created> .
+@prefix ex: <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<urn:uuid:3c7f3116-f7e8-497f-ab84-92ec444d6761> a cr:PolicyReport ;
+  <http://purl.org/dc/terms/created> "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+  cr:policy ex:usagePolicy1 ;
+  cr:policyRequest <urn:ucp:policy:2a797ad7-232a-4e1f-853f-81388969e4a1> ;
+  cr:ruleReport <urn:uuid:998c2562-2656-4267-b1cb-8cde83b73ecc>, <urn:uuid:80d08eaa-afcc-4cbe-9645-39fc8c1957b7>, <urn:uuid:22461372-aff8-4ef2-8c27-d92154b7b8ac> .
+<urn:uuid:998c2562-2656-4267-b1cb-8cde83b73ecc> a cr:PermissionReport ;
+  cr:attemptState cr:Attempted ;
+  cr:rule ex:permission1 ;
+  cr:ruleRequest <urn:ucp:rule:e3ba21f7-57b0-4a43-988a-3221aba858ef> ;
+  cr:premiseReport <urn:uuid:5c68859b-f70e-4a64-bb12-7b8fb64ddc37>, <urn:uuid:e37247f4-e167-40a4-bd8b-9d91387b04d2>, <urn:uuid:79ae938e-2565-441b-bd15-933b97d7c6ae> ;
+  cr:activationState cr:Active .
+<urn:uuid:5c68859b-f70e-4a64-bb12-7b8fb64ddc37> a cr:TargetReport ;
+  cr:satisfactionState cr:Satisfied .
+<urn:uuid:e37247f4-e167-40a4-bd8b-9d91387b04d2> a cr:PartyReport ;
+  cr:satisfactionState cr:Satisfied .
+<urn:uuid:79ae938e-2565-441b-bd15-933b97d7c6ae> a cr:ActionReport ;
+  cr:satisfactionState cr:Satisfied .
+<urn:uuid:80d08eaa-afcc-4cbe-9645-39fc8c1957b7> a cr:PermissionReport ;
+  cr:attemptState cr:Attempted ;
+  cr:rule ex:permission2 ;
+  cr:ruleRequest <urn:ucp:rule:e3ba21f7-57b0-4a43-988a-3221aba858ef> ;
+  cr:premiseReport <urn:uuid:1b4e9796-265c-4514-941a-532bbb7d09a2>, <urn:uuid:56644213-2bd4-48a7-8645-156008d5da68>, <urn:uuid:949c32da-e6a5-46ce-a110-52eebb699964> ;
+  cr:activationState cr:Inactive .
+<urn:uuid:1b4e9796-265c-4514-941a-532bbb7d09a2> a cr:TargetReport ;
+  cr:satisfactionState cr:Satisfied .
+<urn:uuid:56644213-2bd4-48a7-8645-156008d5da68> a cr:PartyReport ;
+  cr:satisfactionState cr:Unsatisfied .
+<urn:uuid:949c32da-e6a5-46ce-a110-52eebb699964> a cr:ActionReport ;
+  cr:satisfactionState cr:Unsatisfied .
+<urn:uuid:22461372-aff8-4ef2-8c27-d92154b7b8ac> a cr:ProhibitionReport ;
+  cr:attemptState cr:Attempted ;
+  cr:rule <urn:uuid:9477c997-adc1-4d64-a12c-fa9e0f6b80f0> ;
+  cr:ruleRequest <urn:ucp:rule:e3ba21f7-57b0-4a43-988a-3221aba858ef> ;
+  cr:premiseReport <urn:uuid:8171c7a1-c3e8-4398-a0a9-1cd5a9d3c0c3>, <urn:uuid:47faebe8-e708-4acf-87ea-33df9d63f4ea>, <urn:uuid:187c65aa-4e40-4907-9e46-52d0f8c6832a> ;
+  cr:activationState cr:Inactive .
+<urn:uuid:8171c7a1-c3e8-4398-a0a9-1cd5a9d3c0c3> a cr:TargetReport ;
+  cr:satisfactionState cr:Satisfied .
+<urn:uuid:47faebe8-e708-4acf-87ea-33df9d63f4ea> a cr:PartyReport ;
+  cr:satisfactionState cr:Unsatisfied .
+<urn:uuid:187c65aa-4e40-4907-9e46-52d0f8c6832a> a cr:ActionReport ;
+  cr:satisfactionState cr:Satisfied .
+<urn:uuid:39d19e3f-d303-4cb5-95cd-b266591c859e> a cr:PolicyReport ;
+  <http://purl.org/dc/terms/created> "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+  cr:policy <urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> ;
+  cr:policyRequest <urn:ucp:policy:2a797ad7-232a-4e1f-853f-81388969e4a1> ;
+  cr:ruleReport <urn:uuid:3fc9a4ca-40b2-434d-9b6b-cf5d77cb1fb7> .
+<urn:uuid:3fc9a4ca-40b2-434d-9b6b-cf5d77cb1fb7> a cr:PermissionReport ;
+  cr:attemptState cr:Attempted ;
+  cr:rule <urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001> ;
+  cr:ruleRequest <urn:ucp:rule:e3ba21f7-57b0-4a43-988a-3221aba858ef> ;
+  cr:premiseReport <urn:uuid:2a527c2c-3f3a-4add-badf-92fd5ef11fd7>, <urn:uuid:30b38e7c-18ef-4c51-a1a2-0b43c069e99c>, <urn:uuid:55ff7b61-3015-42ae-ab1c-5131ef3a04f2> ;
+  cr:activationState cr:Inactive .
+<urn:uuid:2a527c2c-3f3a-4add-badf-92fd5ef11fd7> a cr:TargetReport ;
+  cr:satisfactionState cr:Unsatisfied .
+<urn:uuid:30b38e7c-18ef-4c51-a1a2-0b43c069e99c> a cr:PartyReport ;
+  cr:satisfactionState cr:Unsatisfied .
+<urn:uuid:55ff7b61-3015-42ae-ab1c-5131ef3a04f2> a cr:ActionReport ;
+  cr:satisfactionState cr:Satisfied .`
+
+        const odrlPolicyQuads = parser.parse(compactPolicy);
+        const odrlRequestQuads = parser.parse(request);
+        const stateOfTheWorldQuads = parser.parse(sotw);
+
+        const expectedReportQuads = parser.parse(expectedReport);
+        const report = await odrlEvaluator.evaluate(
+            odrlPolicyQuads,
+            odrlRequestQuads,
+            stateOfTheWorldQuads);
+        expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
+    })
+
 })

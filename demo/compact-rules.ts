@@ -1,5 +1,5 @@
-import { Parser, Writer } from "n3";
-import { ODRLEvaluator, ODRLEngineMultipleSteps, Atomizer, AtomizedEvaluatedRule, prefixes, parseComplianceReport } from "./src";
+import { Parser } from "n3";
+import { CompositeODRLEvaluator, ODRLEngineMultipleSteps, prefixes, ODRLEvaluator } from "../dist/index";
 import { write } from '@jeswr/pretty-turtle';
 
 const sotw = `
@@ -54,38 +54,19 @@ ex:permission2 a odrl:Permission ;
     odrl:assigner ex:zeno.
 `
 
-async function main(){
+async function main() {
     const parser = new Parser()
-    const writer = new Writer();
     // ODRL Evaluator inputs
     const sotwQuads = parser.parse(sotw)
     const requestQuads = parser.parse(request)
-    const evaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
     const compactPolicyQuads = parser.parse(compactPolicy)
+    const odrlEvaluator = new CompositeODRLEvaluator(new ODRLEngineMultipleSteps());
 
-    const atomizer = new Atomizer();
-    const policies = await atomizer.atomizePolicies(compactPolicyQuads);
-  
-    const atomizedEvaluatedRules: AtomizedEvaluatedRule[] = []
-    for (const policy of policies) {
-        const report = await evaluator.evaluate(policy.atomizedRuleQuads, requestQuads, sotwQuads)
-        atomizedEvaluatedRules.push({
-            ...policy,
-            policyReportQuads: report
-        })
+    const report = await odrlEvaluator.evaluate(compactPolicyQuads, requestQuads, sotwQuads);
+    console.log(await write(report, { prefixes }));
 
-        console.log(policy.ruleID.value);
-        
-        console.log(writer.quadsToString(policy.atomizedRuleQuads));
-        console.log(await write(report, {prefixes}));
-console.log();
-        
-    }
-
-
-    const report = atomizer.mergeAtomizedRuleReports(atomizedEvaluatedRules);
-
-    console.log(await write(report, {prefixes}));
-
+    const evaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
+    const report1 = await evaluator.evaluate(compactPolicyQuads, requestQuads, sotwQuads);
+    console.log(await write(report1, { prefixes }));
 }
 main()
