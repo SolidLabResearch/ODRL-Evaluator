@@ -1,0 +1,154 @@
+@prefix math: <http://www.w3.org/2000/10/swap/math#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix sotw: <https://w3id.org/force/sotw#> .
+@prefix faqir: <https://faqir.org/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.org/> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix report: <https://w3id.org/force/compliance-report#> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+
+# uuid backward rule (component)
+{
+   ?input :getUUID ?urnUuid 
+}
+<= 
+{
+   ?input log:skolem ?uniqueNode .
+   ?uniqueNode log:uuid ?uuidString .
+   ( "urn:uuid:" ?uuidString ) string:concatenation ?urnUuidString .
+   ?urnUuid log:uri ?urnUuidString .
+} .
+
+# Creates a premiseReport for each constraint there is.
+{
+    # get the requested purpose value from the evaluation request.
+    # This is specific per evaluation request and not for the whole sotw.
+    _:a odrl:constraint ?constraint .
+
+    ( ?constraint ) :getUUID ?premiseReport .
+
+} => { 
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint .
+}.
+
+# Create empty premise report for purposes (no purpose present in the evaluation request)
+{ 
+    # check for number of purposes in evaluation request
+    (
+        ?template
+        {
+            ?requestPermission sotw:context ?requestContextConstraint .
+            ?requestContextConstraint odrl:leftOperand odrl:purpose .        
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    # number of purposes in evaluation request is 0
+    ?L list:length 0 .
+
+    # a rule with a purpose constraint
+    _:a odrl:constraint ?constraint .
+    ?constraint odrl:leftOperand odrl:purpose .
+    
+    # created premiseReport
+    ?premiseReport report:constraint ?constraint .
+} => {
+    ?premiseReport report:constraintLeftOperand "" . #TODO: do we need a default purpose?
+}.
+
+
+# Create empty premise report for purposes (one present in the evaluation request)
+{ 
+    ?requestPermission sotw:context ?requestContextConstraint .
+    ?requestContextConstraint odrl:leftOperand odrl:purpose .
+    ?requestContextConstraint odrl:rightOperand ?requestedPurpose .
+
+    # check for number of purposes in evaluation request
+    (
+        ?template
+        {
+            ?requestPermission sotw:context ?requestContextConstraint .
+            ?requestContextConstraint odrl:leftOperand odrl:purpose .
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    # number of purposes in evaluation request is 1
+    ?L list:length 1 .
+
+    # a rule with a purpose constraint
+    _:a odrl:constraint ?constraint .
+    ?constraint odrl:leftOperand odrl:purpose .
+    
+    # created premiseReport
+    ?premiseReport report:constraint ?constraint .
+} => {
+    ?premiseReport report:constraintLeftOperand ?requestedPurpose . 
+}.
+
+@prefix dcterms:       <http://purl.org/dc/terms/> .
+@prefix dpv:           <https://w3id.org/dpv#> .
+@prefix dpv-odrl:      <https://w3id.org/dpv/mappings/odrl#> .
+@prefix ex:            <https://example.org/> .
+@prefix faqir:         <https://faqir.org/> .
+@prefix odrl:          <http://www.w3.org/ns/odrl/2/> .
+@prefix sector-health: <https://w3id.org/dpv/sector/health#> .
+
+ex:uc22-p-pod-accountManagement-faqirPodManagSerDC-accountManagement a odrl:Set ;
+    odrl:uid ex:uc22-p-pod-accountManagement-faqirPodManagSerDC-accountManagement ;
+    odrl:profile dpv-odrl: ;
+    dcterms:description "User allows FAQIR Pod Management Service full access to manage his Pod."@en ;
+    odrl:permission ex:uc22-rule .
+    ex:uc22-rule a odrl:Permission;
+        odrl:action odrl:read, odrl:modify ;
+        odrl:target faqir:patientPod ; 
+        odrl:assigner ex:patient ;
+        odrl:assignee faqir:podManagementService ;
+        odrl:constraint [
+            odrl:leftOperand odrl:purpose ;
+            odrl:operator odrl:eq ;
+            odrl:rightOperand dpv:AccountManagement ]  .
+
+
+
+faqir:podManagementService a dpv:ServiceProvider, dpv:NonProfitOrganisation .
+
+@prefix odrl:    <http://www.w3.org/ns/odrl/2/> .
+@prefix faqir:   <https://faqir.org/> .
+@prefix sotw:    <https://w3id.org/force/sotw#> .
+@prefix dcterms: <http://purl.org/dc/terms/>.
+
+ex:requestPurpose a sotw:EvaluationRequest ;
+    dcterms:issued "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+    sotw:requestedAction odrl:read ;
+    sotw:requestingParty faqir:aggregator ;
+    sotw:requestedTarget <https://faqir.org/patientPod/sensor> ;
+    sotw:context ex:accountManagementPurpose .
+
+ex:accountManagementPurpose a odrl:Constraint ;
+    odrl:leftOperand odrl:purpose ;
+    odrl:operator odrl:eq ;
+    odrl:rightOperand dpv:AccountManagement .
+# Equal to: odrl:eq
+# https://w3c.github.io/N3/reports/20230703/builtins.html#math:equalTo
+{ 
+    ?constraint 
+        odrl:operator odrl:eq ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand log:equalTo ?rightOperand .
+
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:eq ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+
