@@ -394,6 +394,9 @@ async function main() {
     await printTestCase(reportMultiplePurpose_Absent, 2, 4, "(action and target)");
     await printTestCase(reportMultiplePurpose_Present, 3, 4, "(action, target and purpose)");
 
+    console.log(await write([...requestPurposeQuads, ...sotwQuads, ...policyMultipleNonManagementPurpose], {prefixes}))
+    console.log(await write(reportMultiplePurpose_Present, {prefixes})); 
+
     // const atomizer = new Atomizer();
     // const atomizedRules = await atomizer.atomizePolicies(policyMultipleNonManagementPurpose);
     // console.log(await write(atomizedRules[0].atomizedRuleQuads, {prefixes}));

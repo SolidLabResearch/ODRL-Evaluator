@@ -296,10 +296,18 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 } =>
 {
     ?premiseReport 
-        report:constraintOperator odrl:eq ;
+        report:constraintOperator odrl:isAnyOf ;
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+
+{
+    ?premiseReport  report:constraintOperator odrl:isAnyOf ;
+        report:constraint ?constraint .
+    ?constraint odrl:rightOperand ?rightOperand .
+} => {
+    ?premiseReport report:constraintRightOperand ?rightOperand .
+} . 
 #######################################################################################################################
 # Logical operands
 # logical operand premisereport generation

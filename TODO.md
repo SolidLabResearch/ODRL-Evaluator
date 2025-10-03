@@ -27,9 +27,16 @@ MUST becom
 - [ ] fix [issue 3](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/3) -> strange behaviour in action reports for compact rules
   - [ ] perhaps also test whether I can solve compact policies as well as that is just derivation
 - [ ] fix [issue 8](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/8) -> strange behaviour in
-- [ ] implement `odrl:anyOf`
-  - checkout other operators
-  - Make a release checklist template
+- [x] implement `odrl:anyOf`
+- [ ] checkout other operators
+  - Needs discussion
+    - `odrl:isAllOf`: With how we evaluate right now, `odrlisAllOf` does not make a lot of sense
+    - `odrl:isPartOf`: what does containment mean? for Target and Party collections, that is clear (`odrl:partOf`)
+    - `odrl:hasPart`: what does containment mean? for Target and Party collections, that is clear (`odrl:partOf`)
+    - `odrl:isA`: What does *is an instance* mean for right operands?
+  - Needs implementation and test cases
+    - `odrl:isNoneOf`: implement via list:in and making sure the count is 0
+- [ ]Make a release checklist template
 - [ ] start drafting roadmap for proper upgrade to new sotw and evaluation request
   - preferably this release?
 

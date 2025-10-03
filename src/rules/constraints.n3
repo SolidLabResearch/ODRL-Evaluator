@@ -259,10 +259,18 @@
 } =>
 {
     ?premiseReport 
-        report:constraintOperator odrl:eq ;
+        report:constraintOperator odrl:isAnyOf ;
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+# Make it complete by logging the remainder
+{
+    ?premiseReport  report:constraintOperator odrl:isAnyOf ;
+        report:constraint ?constraint .
+    ?constraint odrl:rightOperand ?rightOperand .
+} => {
+    ?premiseReport report:constraintRightOperand ?rightOperand .
+} . 
 #######################################################################################################################
 # Logical operands
 # logical operand premisereport generation
