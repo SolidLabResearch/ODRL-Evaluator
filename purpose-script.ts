@@ -25,25 +25,25 @@ ex:uc22-p-pod-accountManagement-faqirPodManagSerDC-accountManagement a odrl:Set 
     odrl:profile dpv-odrl: ;
     dcterms:description "User allows FAQIR Pod Management Service full access to manage his Pod."@en ;
     odrl:permission ex:uc22-rule .
-    ex:uc22-rule a odrl:Permission;
-        odrl:action odrl:read, odrl:modify ;
-        odrl:target faqir:patientPod ; 
-        odrl:assigner ex:patient ;
-        odrl:assignee faqir:podManagementService ;
-        odrl:constraint [
-            odrl:leftOperand odrl:purpose ;
-            odrl:operator odrl:eq ;
-            odrl:rightOperand dpv:AccountManagement ]  .
+ex:uc22-rule a odrl:Permission;
+    odrl:action odrl:read, odrl:modify ;
+    odrl:target faqir:patientPod ; 
+    odrl:assigner ex:patient ;
+    odrl:assignee faqir:podManagementService ;
+    odrl:constraint [
+        odrl:leftOperand odrl:purpose ;
+        odrl:operator odrl:eq ;
+        odrl:rightOperand dpv:AccountManagement ]  .
 
 
 
 faqir:podManagementService a dpv:ServiceProvider, dpv:NonProfitOrganisation .
 `
-    //  ex:uc22-rule   odrl:constraint ex:uc22-constraint .
-    // ex:uc22-constraint
-    //     odrl:leftOperand odrl:purpose ;
-    //     odrl:operator odrl:eq ;
-    //     odrl:rightOperand dpv:AccountManagement  .
+//  ex:uc22-rule   odrl:constraint ex:uc22-constraint .
+// ex:uc22-constraint
+//     odrl:leftOperand odrl:purpose ;
+//     odrl:operator odrl:eq ;
+//     odrl:rightOperand dpv:AccountManagement  .
 // https://github.com/besteves4/pacsoi-policies/blob/main/PoC2/policy-23.ttl
 const policy23 = `
 @prefix dcterms:       <http://purl.org/dc/terms/> .
@@ -58,7 +58,9 @@ ex:uc23-p-sensorSlice-serviceProvision-faqirDC-read a odrl:Set ;
     odrl:uid ex:uc23-p-sensorSlice-serviceProvision-faqirDC-read ;
     odrl:profile dpv-odrl: ;
     dcterms:description "User allows FAQIR Aggregator read access to its sensor slice."@en ;
-    odrl:permission [
+    odrl:permission ex:uc23-rule .
+    ex:uc23-rule
+        a odrl:Permission;
         odrl:action odrl:read ; 
         odrl:target <https://faqir.org/patientPod/sensor/slice> ; 
         odrl:assigner ex:patient ;
@@ -67,7 +69,7 @@ ex:uc23-p-sensorSlice-serviceProvision-faqirDC-read a odrl:Set ;
             odrl:leftOperand odrl:purpose ;
             odrl:operator odrl:isAnyOf ;
             odrl:rightOperand dpv:ServiceProvision, dpv:NonCommercialResearch,
-                sector-health:ResourceManagement ] ] .
+                sector-health:ResourceManagement ] .
 
 faqir:aggregator a dpv:ServiceProvider .
 `
@@ -85,7 +87,9 @@ ex:uc24-p-profileQuestionnaireSensor-serviceProvision-moveUpProfileDC-readModify
     odrl:uid ex:uc24-p-profileQuestionnaireSensor-serviceProvision-moveUpProfileDC-readModify ;
     odrl:profile dpv-odrl: ;
     dcterms:description "User allows his own MoveUp profile read and write (modify) access to his profile, questionnaire, and sensor slices."@en ;
-    odrl:permission [
+    odrl:permission ex:uc24-rule .
+    ex:uc24-rule
+        a odrl:Permission;
         odrl:action odrl:read, odrl:modify ; 
         odrl:target <https://faqir.org/patientPod/sensor>, <https://faqir.org/patientPod/profile>, <https://faqir.org/patientPod/questionnaire> ; 
         odrl:assigner ex:patient ;
@@ -94,7 +98,7 @@ ex:uc24-p-profileQuestionnaireSensor-serviceProvision-moveUpProfileDC-readModify
             odrl:leftOperand odrl:purpose ;
             odrl:operator odrl:isAnyOf ;
             odrl:rightOperand dpv:ServiceProvision, dpv:AccountManagement, 
-                sector-health:ResourceManagement ] ] .
+                sector-health:ResourceManagement ] .
 `
 // https://github.com/besteves4/pacsoi-policies/blob/main/PoC2/policy-25.ttl
 const policy25 = `
@@ -161,8 +165,27 @@ const requestOld = `
     odrl:action odrl:read;
     odrl:target <https://faqir.org/patientPod/sensor>;
     odrl:assignee faqir:aggregator .
+`
 
+const requestOldPurposeAccountManagement = `
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix faqir:         <https://faqir.org/> .
+@prefix dcterms: <http://purl.org/dc/terms/>.
+@prefix sotw:    <https://w3id.org/force/sotw#> .
+@prefix dpv: <https://w3id.org/dpv#>.
 
+<urn:ucp:policy:2a797ad7-232a-4e1f-853f-81388969e4a1> a odrl:Request;
+    odrl:permission <urn:ucp:rule:e3ba21f7-57b0-4a43-988a-3221aba858ef>.
+<urn:ucp:rule:e3ba21f7-57b0-4a43-988a-3221aba858ef> a odrl:Permission;
+    odrl:action odrl:read;
+    odrl:target <https://faqir.org/patientPod/sensor>;
+    odrl:assignee faqir:aggregator ;
+    sotw:context <urn:ucp:purposeConstraint:4061bd8d-a82c-4b5f-bdf4-7dcb2583b3d2> .
+
+<urn:ucp:purposeConstraint:4061bd8d-a82c-4b5f-bdf4-7dcb2583b3d2> a odrl:Constraint ;
+    odrl:leftOperand odrl:purpose ;
+    odrl:operator odrl:eq ;
+    odrl:rightOperand dpv:AccountManagement .
 `
 const requestNoPurpose = `
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
@@ -340,49 +363,65 @@ ex:currentTime dct:issued "${time.toISOString()}"^^xsd:dateTime.
 async function main() {
     const parser = new Parser()
     // testing old vs new sotw and evaluation requests
-    console.log(new Writer().quadsToString(await transformSotw(new Parser().parse(sotwOld))));
-    console.log(new Writer().quadsToString(await transformRequest(new Parser().parse(requestOld))));
+    // console.log(new Writer().quadsToString(await transformSotw(new Parser().parse(sotwOld))));
+    // console.log(new Writer().quadsToString(await transformRequest(new Parser().parse(requestOld))));
 
     const eye = new EyeReasoner('eye', ["--quiet", "--nope", "--pass-only-new"])
     const engine = new ODRLEngineMultipleSteps({ reasoner: eye })
     const odrlEvaluator = new CompositeODRLEvaluator(engine);
 
     const requestQuads = parser.parse(requestOld);
+    const requestPurposeQuads = parser.parse(requestOldPurposeAccountManagement);
     const sotwQuads = parser.parse(sotwOld);
 
     // TODO: util function to create evaluation request, output old and output new
     // TODO: util function to create state of the world, output old and output new
     const policySinglePurpose = parser.parse(policy22); // target and subject will not match 
-    const policyMultipleNonManagementPurpose = parser.parse(policy23); // target will not match as well
+    const policyMultipleNonManagementPurpose = parser.parse(policy23); // target and purpose will not match
     const policyMultiplePurpose = parser.parse(policy24); // subject will not match
 
-    const reportSinglePurpose = parseSingleComplianceReport(await odrlEvaluator.evaluate(policySinglePurpose, requestQuads, sotwQuads));
-    // const reportMultipleNonManagementPurposee = parseSingleComplianceReport(await odrlEvaluator.evaluate(policyMultipleNonManagementPurpose, requestQuads, sotwQuads));
-    // const reportMultiplePurposee = parseSingleComplianceReport(await odrlEvaluator.evaluate(policyMultiplePurpose, requestQuads, sotwQuads));
+    const reportSinglePurpose_Absent = await odrlEvaluator.evaluate(policySinglePurpose, requestQuads, sotwQuads);
+    const reportSinglePurpose_Present = await odrlEvaluator.evaluate(policySinglePurpose, requestPurposeQuads, sotwQuads);
+    const reportMultipleNonManagementPurpose_Absent = await odrlEvaluator.evaluate(policyMultipleNonManagementPurpose, requestQuads, sotwQuads);
+    const reportMultipleNonManagementPurpose_Present = await odrlEvaluator.evaluate(policyMultipleNonManagementPurpose, requestPurposeQuads, sotwQuads);
+    const reportMultiplePurpose_Absent = await odrlEvaluator.evaluate(policyMultiplePurpose, requestQuads, sotwQuads);
+    const reportMultiplePurpose_Present = await odrlEvaluator.evaluate(policyMultiplePurpose, requestPurposeQuads, sotwQuads);
 
-    // // NOTE: at the time of writing, one permission per policy
-    console.log("Expecting 2/4 premises for single purpose report satisfied (action and purpose). Actual amount:",
-         countPremisesSatisfied(reportSinglePurpose.ruleReport[0]),"/",
-        reportSinglePurpose.ruleReport[0].premiseReport.length);
-    console.log(await write(await odrlEvaluator.evaluate(policySinglePurpose, requestQuads, sotwQuads), { prefixes }));
+    await printTestCase(reportSinglePurpose_Absent, 1, 4, "(action)");
+    await printTestCase(reportSinglePurpose_Present, 2, 4, "(action and purpose)");
+    await printTestCase(reportMultipleNonManagementPurpose_Absent, 2, 4, "(subject and action)");
+    await printTestCase(reportMultipleNonManagementPurpose_Present, 2, 4, "(subject and action)");
+    await printTestCase(reportMultiplePurpose_Absent, 2, 4, "(action and target)");
+    await printTestCase(reportMultiplePurpose_Present, 3, 4, "(action, target and purpose)");
 
-    const atomizer = new Atomizer();
-    const atomizedRules = await atomizer.atomizePolicies(policySinglePurpose);
-    console.log(await write(atomizedRules[0].atomizedRuleQuads, {prefixes}));
+    // const atomizer = new Atomizer();
+    // const atomizedRules = await atomizer.atomizePolicies(policyMultipleNonManagementPurpose);
+    // console.log(await write(atomizedRules[0].atomizedRuleQuads, {prefixes}));
 
-    const atomizedEvaluatedRules: AtomizedEvaluatedRule[] = []
-    for (const policy of atomizedRules) {
-        const report = await new ODRLEvaluator(engine).evaluate(policy.atomizedRuleQuads, requestQuads, sotwQuads);
-        atomizedEvaluatedRules.push({
-            ...policy,
-            policyReportQuads: report
-        });
-    }
+    // const atomizedEvaluatedRules: AtomizedEvaluatedRule[] = []
+    // for (const policy of atomizedRules) {
+    //     const report = await new ODRLEvaluator(engine).evaluate(policy.atomizedRuleQuads, requestQuads, sotwQuads);
+    //     atomizedEvaluatedRules.push({
+    //         ...policy,
+    //         policyReportQuads: report
+    //     });
+    // }
 
-    const report = atomizer.mergeAtomizedRuleReports(atomizedEvaluatedRules);
-
+    // const report = atomizer.mergeAtomizedRuleReports(atomizedEvaluatedRules);
 }
 main()
+
+// assumes one permission per policy to be evaluated
+async function printTestCase(report: Quad[], expectedPremises: number, expectedTotalPremises: number, reason?: string): Promise<void> {
+    const parsedReport = parseSingleComplianceReport(report);
+
+    const actualSatisfiedPremises = countPremisesSatisfied(parsedReport.ruleReport[0]);
+    const actualTotalPremises = parsedReport.ruleReport[0].premiseReport.length
+    console.log(`Expecting (${expectedPremises}/${expectedTotalPremises}) premises ${reason}. Actual amount:(${actualSatisfiedPremises}/${actualTotalPremises})`);
+    // console.log(await write(report));
+    console.log("#######################################################################################################################")
+    console.log();
+}
 
 function parseSingleComplianceReport(quads: Quad[]): PolicyReport {
     const store = new Store(quads)
@@ -393,39 +432,3 @@ function parseSingleComplianceReport(quads: Quad[]): PolicyReport {
 function countPremisesSatisfied(ruleReport: RuleReport) {
     return ruleReport.premiseReport.filter(premiseReport => premiseReport.satisfactionState === SatisfactionState.Satisfied).length
 }
-
-// Changes compared to repo: https://github.com/besteves4/pacsoi-policies/blob/main/PoC2/policy-26.ttl
-// NOTE: had to explicitly add `odrl:Permission` to the permission of the policies -> perhaps add code to infer this (making it future proof)
-// NOTE: evaluation request in sotw spec has errors
-
-// current policies have compact rules, requiring the `CompositeODRLEvaluator`
-// It does not work yet though
-
-// premise reports are only created when the left operand is `odrl:dateTime`
-// makes sense based on the implementation, though this is not what we want in the end
-// current order is the following
-// 1. premiseReport is created for filling in left operand datetime in `src/rules/constraints.n3`
-// 2. premiseReport is then linked to RuleReport based on constraint identifier and rule identifier
-
-
-// first solve zero purposes present
-// NOTE: need to watch out for dangling context -> request sanitization is important
-// TODO: do we need a default purpose?
-
-// then solve 1 purpose present
-
-
-// TODO: purpose zero/one constraint report integration
-// -> fix constraint.n3 regarding constraint report generation 
-//  (make sure all constraint reports are generated, and not only when we support the constraint already (see datetime in constraints vs purpose in experiment))
-// -> find a good fix for the equality
-//  -> datetime equality is not the same as purpose equality (math vs log eq builtin in n3) (WAITING FOR JOS)
-// -> use OLD request with sotw:context for the purpose
-
-// Next step
-// - implement anyOf
-//     Due diligance: check which other could be tested in this scenario
-// make proper tests with the policies described
-
-// Last step
-// - change sotw and request

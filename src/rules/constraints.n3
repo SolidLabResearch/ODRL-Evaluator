@@ -6,10 +6,11 @@
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix report: <https://w3id.org/force/compliance-report#> .
 @prefix temp: <http://example.com/request/> .
+@prefix sotw: <https://w3id.org/force/sotw#> .
 
 # Constraint report
 
-# Connect constraint to rule
+# Connect constraint Report to Rule Report
 { 
     ?rule odrl:constraint ?constraint.
     ?ruleReport report:rule ?rule .
@@ -18,26 +19,94 @@
     ?ruleReport report:premiseReport ?premiseReport .
 }.
 
-# Left Operand Conversion
-# odrl:dateTime to xsd:dateTime
-# https://www.w3.org/TR/odrl-vocab/#term-dateTime
+# Creates a premiseReport for each constraint there is.
 {
-    ?constraint odrl:leftOperand odrl:dateTime .
-    temp:currentTime dct:issued ?dateTime .
+    _:a odrl:constraint ?constraint .
     ( ?constraint ) :getUUID ?premiseReport .
-
-    # TODO: check whether rightoperand is xsd:dateTime
 
 } => { 
     ?premiseReport a report:ConstraintReport ;
-        report:constraint ?constraint ;
-        report:constraintLeftOperand ?dateTime .
+        report:constraint ?constraint .
+}.
+
+#######################################################################################################################
+# Left Operand Conversion
+
+# odrl:dateTime to xsd:dateTime
+# https://www.w3.org/TR/odrl-vocab/#term-dateTime
+{
+    # bind created premiseReport
+    ?premiseReport report:constraint ?constraint .
+
+    ?constraint odrl:leftOperand odrl:dateTime .
+    temp:currentTime dct:issued ?dateTime .
+
+    # TODO: check whether rightoperand is xsd:dateTime -> Not here; SHACL validation of constraints
+
+} => { 
+    ?premiseReport report:constraintLeftOperand ?dateTime .
 }.
 # TODO: odrl:dateTime to xsd:date
 # https://www.w3.org/TR/odrl-vocab/#term-dateTime
 # TODO: check whether rightoperand is xsd:date
 
-# Operand
+# odrl:purpose
+# https://www.w3.org/TR/odrl-vocab/#term-purpose
+# Create empty premise report for purposes (no purpose present in the evaluation request)
+{ 
+    # check for number of purposes in evaluation request
+    (
+        ?template
+        {
+            ?requestPermission sotw:context ?requestContextConstraint .
+            ?requestContextConstraint odrl:leftOperand odrl:purpose .        
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    # number of purposes in evaluation request is 0
+    ?L list:length 0 .
+
+    # a rule with a purpose constraint
+    _:a odrl:constraint ?constraint .
+    ?constraint odrl:leftOperand odrl:purpose .
+    
+    # created premiseReport
+    ?premiseReport report:constraint ?constraint .
+} => {
+    ?premiseReport report:constraintLeftOperand "" . #TODO: do we need a default purpose?
+}.
+
+# Create empty premise report for purposes (one present in the evaluation request)
+{ 
+    ?requestPermission sotw:context ?requestContextConstraint .
+    ?requestContextConstraint odrl:leftOperand odrl:purpose .
+    ?requestContextConstraint odrl:rightOperand ?requestedPurpose .
+
+    # check for number of purposes in evaluation request
+    (
+        ?template
+        {
+            ?requestPermission sotw:context ?requestContextConstraint .
+            ?requestContextConstraint odrl:leftOperand odrl:purpose .
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    # number of purposes in evaluation request is 1
+    ?L list:length 1 .
+
+    # a rule with a purpose constraint
+    _:a odrl:constraint ?constraint .
+    ?constraint odrl:leftOperand odrl:purpose .
+    
+    # created premiseReport
+    ?premiseReport report:constraint ?constraint .
+} => {
+    ?premiseReport report:constraintLeftOperand ?requestedPurpose . 
+}.
+
+
+#######################################################################################################################
+# Comparing the operators using the different odrl operators
 # Less than: odrl:lt
 { 
     ?constraint 
@@ -75,7 +144,10 @@
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+
 # Equal to: odrl:eq
+# Recommendation by Jos on 03/10/2025: equality is difficult. Use both math:equalTo and log:equalTo
+# OR operator does not exist in N3, so that's why you have to do it like this
 # https://w3c.github.io/N3/reports/20230703/builtins.html#math:equalTo
 { 
     ?constraint 
@@ -94,6 +166,27 @@
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+
+# https://w3c.github.io/N3/reports/20230703/builtins.html#log:equalTo
+{ 
+    ?constraint 
+        odrl:operator odrl:eq ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand log:equalTo ?rightOperand .
+
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:eq ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+
 # Greater than or equal to: odrl:gteq
 # https://w3c.github.io/N3/reports/20230703/builtins.html#math:notLessThan
 { 
@@ -151,6 +244,26 @@
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+# Is any of: odrl:isAnyOf
+# There is a right operand value that equals the value that is actually present (the materialized left operand)
+# https://w3c.github.io/N3/reports/20230703/builtins.html#log:equalTo
+{
+    ?constraint 
+        odrl:operator odrl:isAnyOf ;
+        odrl:rightOperand ?rightOperand .
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand log:equalTo ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:eq ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+#######################################################################################################################
 # Logical operands
 # logical operand premisereport generation
 { 
@@ -307,3 +420,4 @@
     ?logicalConstraintReportID report:satisfactionState report:Satisfied  .
 
 }.
+#######################################################################################################################
