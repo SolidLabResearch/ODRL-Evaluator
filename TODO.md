@@ -7,13 +7,12 @@
 - [ ] Test cases for zero or one purpose
   - Ensure no DANGLING context is possible -> see rules related to purpose in `constraint.n3`
     - make a test case for that?
-    - 
 ```n3
 ?requestPermission sotw:context ?requestContextConstraint .
 ?requestContextConstraint odrl:leftOperand odrl:purpose . 
 ```
 
-MUST becom
+MUST become
 
 ```n3
 ?requestPermission a sotw:EvaluationRequest. 
@@ -26,7 +25,7 @@ MUST becom
 - [ ] Do a github release for version 0.4
 - [ ] fix [issue 3](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/3) -> strange behaviour in action reports for compact rules
   - [ ] perhaps also test whether I can solve compact policies as well as that is just derivation
-- [ ] fix [issue 8](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/8) -> strange behaviour in
+- [ ] fix [issue 8](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/8) -> collection
 - [x] implement `odrl:anyOf`
 - [ ] checkout other operators
   - Needs discussion
@@ -36,7 +35,7 @@ MUST becom
     - `odrl:isA`: What does *is an instance* mean for right operands?
   - Needs implementation and test cases
     - `odrl:isNoneOf`: implement via list:in and making sure the count is 0
-- [ ]Make a release checklist template
+- [ ] Make a release checklist template
 - [ ] start drafting roadmap for proper upgrade to new sotw and evaluation request
   - preferably this release?
 

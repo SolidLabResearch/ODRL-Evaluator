@@ -46,9 +46,6 @@
 } => { 
     ?premiseReport report:constraintLeftOperand ?dateTime .
 }.
-# TODO: odrl:dateTime to xsd:date
-# https://www.w3.org/TR/odrl-vocab/#term-dateTime
-# TODO: check whether rightoperand is xsd:date
 
 # odrl:purpose
 # https://www.w3.org/TR/odrl-vocab/#term-purpose
