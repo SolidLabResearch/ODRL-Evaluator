@@ -315,6 +315,25 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 } => {
     ?premiseReport report:constraintRightOperand ?rightOperand .
 } . 
+# Is an instance of: odrl:isA
+{
+    ?constraint 
+        odrl:operator odrl:isA ;
+        odrl:rightOperand ?rightOperand .
+    
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+	?leftOperand a ?instance .
+  
+    ?instance log:equalTo ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:isA ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
 #######################################################################################################################
 # Logical operands
 # logical operand premisereport generation

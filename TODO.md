@@ -2,8 +2,9 @@
 
 ## Creating new test cases
 
-- [ ] checking whether evaluation also work when having xsd:date instead of xsd:dateTime
-  - remove comments in `constraint.n3`
+- [x] checking whether evaluation also work when having xsd:date instead of xsd:dateTime
+  - [x] remove comments in `constraint.n3`
+  - [ ] Make actual test case for (ODRL-test-suite)
 - [ ] Test cases for zero or one purpose
   - Ensure no DANGLING context is possible -> see rules related to purpose in `constraint.n3`
     - make a test case for that?
@@ -20,6 +21,8 @@ MUST become
 ?requestContextConstraint odrl:leftOperand odrl:purpose . 
 ```
 
+Both created at: `test/ODRL-newTestCases.test.ts`
+
 ## Other
 
 - [ ] Do a github release for version 0.4
@@ -33,10 +36,11 @@ MUST become
     - `odrl:isPartOf`: what does containment mean? for Target and Party collections, that is clear (`odrl:partOf`)
     - `odrl:hasPart`: what does containment mean? for Target and Party collections, that is clear (`odrl:partOf`)
     - `odrl:isA`: What does *is an instance* mean for right operands?
+      - https://besteves4.github.io/odrl-access-control-profile/oac.html#x5-1-preference-policy
   - Needs implementation and test cases
-    - `odrl:isNoneOf`: implement via list:in and making sure the count is 0
-- [ ] Make a release checklist template
-- [ ] start drafting roadmap for proper upgrade to new sotw and evaluation request
+    - [ ] TODO: `odrl:isNoneOf`: implement via list:in and making sure the count is 0
+- [x] Make a release checklist template
+- [x] start drafting roadmap for proper upgrade to new sotw and evaluation request
   - preferably this release?
 
 ### To be discussed with Beatriz
@@ -46,5 +50,7 @@ MUST become
   - Recommend using proper identifiers everywhere due the the policy reports
     - Atomizer of Ruben D fails when blank nodes are used for odrl Rules. As a result, so does my `Atomizer` class.
 
+### Addressed
 - Does it make sense to request access for multiple purposes?
+  - A: Right now, it does not. You want to be very specific when you ask for data. You don't want the ambiguity
 
