@@ -19,7 +19,7 @@
     ?ruleReport report:premiseReport ?premiseReport .
 }.
 
-# Creates a premiseReport for each constraint there is.
+# Creates a premiseReport for each constraint there is (starting from a rule)
 {
     _:a odrl:constraint ?constraint .
     ( ?constraint ) :getUUID ?premiseReport .
@@ -29,6 +29,16 @@
         report:constraint ?constraint .
 }.
 
+# Creates a premiseReport for each constraint there is (starting from a logical operator)
+{
+    _:a ?logicaloperand ?constraint .
+    ?logicaloperand list:in ( odrl:or odrl:xone odrl:and odrl:andSequence ) .
+
+    ( ?constraint ) :getUUID ?premiseReport .
+} => {
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint .
+} .
 #######################################################################################################################
 # Left Operand Conversion
 

@@ -56,7 +56,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
     ?ruleReport report:premiseReport ?premiseReport .
 }.
 
-# Creates a premiseReport for each constraint there is.
+# Creates a premiseReport for each constraint there is (starting from a rule)
 {
     _:a odrl:constraint ?constraint .
     ( ?constraint ) :getUUID ?premiseReport .
@@ -66,6 +66,16 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
         report:constraint ?constraint .
 }.
 
+# Creates a premiseReport for each constraint there is (starting from a logical operator)
+{
+    _:a ?logicaloperand ?constraint .
+    ?logicaloperand list:in ( odrl:or odrl:xone odrl:and odrl:andSequence ) .
+
+    ( ?constraint ) :getUUID ?premiseReport .
+} => {
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint .
+} .
 #######################################################################################################################
 # Left Operand Conversion
 
@@ -83,9 +93,6 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 } => { 
     ?premiseReport report:constraintLeftOperand ?dateTime .
 }.
-# TODO: odrl:dateTime to xsd:date
-# https://www.w3.org/TR/odrl-vocab/#term-dateTime
-# TODO: check whether rightoperand is xsd:date
 
 # odrl:purpose
 # https://www.w3.org/TR/odrl-vocab/#term-purpose
@@ -300,7 +307,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
-
+# Make it complete by logging the remainder
 {
     ?premiseReport  report:constraintOperator odrl:isAnyOf ;
         report:constraint ?constraint .
