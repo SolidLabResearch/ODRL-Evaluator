@@ -28,7 +28,7 @@ Both created at: `test/ODRL-newTestCases.test.ts`
 - [x] Do a github release for version 0.4
 - [ ] fix [issue 3](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/3) -> strange behaviour in action reports for compact rules
   - [ ] perhaps also test whether I can solve compact policies as well as that is just derivation
-- [ ] fix [issue 8](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/8) -> collection
+- [x] fix [issue 8](https://github.com/SolidLabResearch/ODRL-Evaluator/issues/8) -> collection
 - [x] implement `odrl:anyOf`
 - [x] implement `odrl:isNoneOf`
 - [x] implement `odrl:anyOf`
