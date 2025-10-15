@@ -151,6 +151,8 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 
 #######################################################################################################################
 # Comparing the operators using the different odrl operators
+# Ordered operators
+
 # Less than: odrl:lt
 { 
     ?constraint 
@@ -288,8 +290,10 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+
+# Set-based Operators
 # Is any of: odrl:isAnyOf
-# There is a right operand value that equals the value that is actually present (the materialized left operand)
+# There is a right operand value that equals the value that is actually present (through the sotw or evaluation request)
 # https://w3c.github.io/N3/reports/20230703/builtins.html#log:equalTo
 {
     ?constraint 
@@ -307,14 +311,6 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
-# Make it complete by logging the remainder
-{
-    ?premiseReport  report:constraintOperator odrl:isAnyOf ;
-        report:constraint ?constraint .
-    ?constraint odrl:rightOperand ?rightOperand .
-} => {
-    ?premiseReport report:constraintRightOperand ?rightOperand .
-} . 
 # Is an instance of: odrl:isA
 {
     ?constraint 
@@ -334,13 +330,46 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+# Is none of: odrl:isNoneOf
+{
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    # Verify that there are no matches between the right operand value and the value that is actually present (through the sotw or evaluation request)
+    (
+        ?template
+        {
+        ?constraint 
+            odrl:operator odrl:isNoneOf ;
+            odrl:rightOperand ?rightOperand .
+        ?leftOperand log:equalTo ?rightOperand .
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    ?L list:length 0 .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:isNoneOf ;
+        report:satisfactionState report:Satisfied .
+} .
+# Make set-based reports complete by logging the remainder
+{
+    ?premiseReport report:constraintOperator ?operator ;
+        report:constraint ?constraint .
+    ?operator list:in ( odrl:isAnyOf odrl:isNoneOf) .
+    ?constraint odrl:rightOperand ?rightOperand .
+} => {
+    ?premiseReport report:constraintRightOperand ?rightOperand .
+} . 
 #######################################################################################################################
 # Logical operands
 # logical operand premisereport generation
 { 
     # match and constraint
     ?constraint a odrl:LogicalConstraint;
-       ?operandType?otherConstraint .
+       ?operandType ?otherConstraint .
     
     ?operandType list:in ( odrl:and odrl:or odrl:xone odrl:andSequence) .
     # create uuid

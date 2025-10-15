@@ -162,6 +162,29 @@ describe('The default ODRL evaluator', () => {
     odrl:operator odrl:isA ;
     odrl:rightOperand dpv:AccountManagement .
         `
+        // TODO: add as new policy
+        const odrlPolicyPurposeIsNone = `
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix ex: <http://example.org/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix dpv: <https://w3id.org/dpv#> .
+
+<urn:uuid:5ee1a7dd-ccba-49a4-92e8-6cc375509efd> a odrl:Set ;
+    odrl:uid <urn:uuid:5ee1a7dd-ccba-49a4-92e8-6cc375509efd> ;
+    dct:description "ALICE may READ resource X for the purpose of dpv:AccountManagement or dpv:DataQualityManagement." ;
+    dct:source <https://github.com/besteves4/pacsoi-policies/blob/main/PoC2/policy-25.ttl> ;
+    odrl:permission <urn:uuid:8b64ba6c-015b-41cf-9f06-2f942edcf1db> .
+
+<urn:uuid:8b64ba6c-015b-41cf-9f06-2f942edcf1db> a odrl:Permission ;
+    odrl:assignee ex:alice ;
+    odrl:action odrl:read ;
+    odrl:target ex:x ;
+    odrl:constraint <urn:uuid:52d3b046-52b6-419f-95b4-93bb557cdf97> .
+
+<urn:uuid:52d3b046-52b6-419f-95b4-93bb557cdf97> odrl:leftOperand odrl:purpose ;
+    odrl:operator odrl:isNoneOf ;
+    odrl:rightOperand dpv:AccountManagement, dpv:DataQualityManagement .
+`;
         // TODO: add as new request; but make it Evaluation Request
         const odrlRequestPurposeManagement = `
 @prefix dct: <http://purl.org/dc/terms/> .
@@ -472,7 +495,7 @@ ex:purpose a dpv:AccountManagement .
                 odrlPolicyQuads,
                 odrlRequestQuads,
                 stateOfTheWorldQuads);
-        expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
+            expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
         })
 
         it('Bad flow regarding purpose with is a.', async () => {
@@ -524,7 +547,110 @@ ex:purpose a dpv:AccountManagement .
                 odrlPolicyQuads,
                 odrlRequestQuads,
                 stateOfTheWorldQuads);
-        expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
+            expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
+        })
+
+        it('Happy flow regarding purpose with is None Of (no purpose present).', async () => {
+            const odrlPolicyText = odrlPolicyPurposeIsNone
+            const odrlRequestText = request1
+            const stateOfTheWorldText = sotwTemporal
+            const expectedReport = `
+@prefix cr: <https://w3id.org/force/compliance-report#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dpv: <https://w3id.org/dpv#> .
+
+<urn:uuid:b97e2a7f-5740-4342-89d9-86c5893c49f1> a cr:ConstraintReport ;
+    cr:constraint <urn:uuid:52d3b046-52b6-419f-95b4-93bb557cdf97> ;
+    cr:satisfactionState cr:Satisfied ;
+    cr:constraintLeftOperand "" ;
+    cr:constraintOperator odrl:isNoneOf ;
+    cr:constraintRightOperand dpv:AccountManagement, dpv:DataQualityManagement .
+
+<urn:uuid:fb3649b2-aed3-4ea0-9bc8-567d20e3dd94> a cr:PolicyReport ;
+    dct:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+    cr:policy <urn:uuid:5ee1a7dd-ccba-49a4-92e8-6cc375509efd> ;
+    cr:policyRequest <urn:uuid:1bafee59-006c-46a3-810c-5d176b4be364> ;
+    cr:ruleReport <urn:uuid:1b49273e-52f4-44a1-ae7a-84936abe7b58> .
+
+<urn:uuid:1b49273e-52f4-44a1-ae7a-84936abe7b58> a cr:PermissionReport ;
+    cr:attemptState cr:Attempted ;
+    cr:rule <urn:uuid:8b64ba6c-015b-41cf-9f06-2f942edcf1db> ;
+    cr:ruleRequest <urn:uuid:186be541-5857-4ce3-9f03-1a274f16bf59> ;
+    cr:premiseReport <urn:uuid:b97e2a7f-5740-4342-89d9-86c5893c49f1>, <urn:uuid:7306f8f9-1a68-4f90-9d29-c6cde17e74c1>, <urn:uuid:3d496620-54fb-4fbf-8463-be55d86b27ba>, <urn:uuid:66bb29a0-1e4f-4a2e-8bce-879385d09b97> ;
+    cr:activationState cr:Active .
+
+<urn:uuid:7306f8f9-1a68-4f90-9d29-c6cde17e74c1> a cr:TargetReport ;
+    cr:satisfactionState cr:Satisfied .
+
+<urn:uuid:3d496620-54fb-4fbf-8463-be55d86b27ba> a cr:PartyReport ;
+    cr:satisfactionState cr:Satisfied .
+
+<urn:uuid:66bb29a0-1e4f-4a2e-8bce-879385d09b97> a cr:ActionReport ;
+    cr:satisfactionState cr:Satisfied .
+    `
+
+            const odrlPolicyQuads = parser.parse(odrlPolicyText);
+            const odrlRequestQuads = parser.parse(odrlRequestText);
+            const stateOfTheWorldQuads = parser.parse(stateOfTheWorldText);
+
+            const expectedReportQuads = parser.parse(expectedReport);
+            const report = await odrlEvaluator.evaluate(
+                odrlPolicyQuads,
+                odrlRequestQuads,
+                stateOfTheWorldQuads);
+            expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
+        })
+        it('Bad flow regarding purpose with is None Of.', async () => {
+            const odrlPolicyText = odrlPolicyPurposeIsNone
+            const odrlRequestText = odrlRequestPurposeManagement
+            const stateOfTheWorldText = sotwTemporal
+            const expectedReport = `
+@prefix cr: <https://w3id.org/force/compliance-report#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dpv: <https://w3id.org/dpv#> .
+
+<urn:uuid:b97e2a7f-5740-4342-89d9-86c5893c49f1> a cr:ConstraintReport ;
+    cr:constraint <urn:uuid:52d3b046-52b6-419f-95b4-93bb557cdf97> ;
+    cr:satisfactionState cr:Unsatisfied ;
+    cr:constraintLeftOperand dpv:AccountManagement .
+
+<urn:uuid:fb3649b2-aed3-4ea0-9bc8-567d20e3dd94> a cr:PolicyReport ;
+    dct:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+    cr:policy <urn:uuid:5ee1a7dd-ccba-49a4-92e8-6cc375509efd> ;
+    cr:policyRequest <urn:uuid:ce9fc20e-7c79-474e-8afe-7605accccee8> ;
+    cr:ruleReport <urn:uuid:1b49273e-52f4-44a1-ae7a-84936abe7b58> .
+
+<urn:uuid:1b49273e-52f4-44a1-ae7a-84936abe7b58> a cr:PermissionReport ;
+    cr:attemptState cr:Attempted ;
+    cr:rule <urn:uuid:8b64ba6c-015b-41cf-9f06-2f942edcf1db> ;
+    cr:ruleRequest <urn:uuid:e51a43e4-616f-4f32-906b-2359955228e5> ;
+    cr:premiseReport <urn:uuid:b97e2a7f-5740-4342-89d9-86c5893c49f1>, <urn:uuid:7306f8f9-1a68-4f90-9d29-c6cde17e74c1>, <urn:uuid:3d496620-54fb-4fbf-8463-be55d86b27ba>, <urn:uuid:66bb29a0-1e4f-4a2e-8bce-879385d09b97> ;
+    cr:activationState cr:Inactive .
+
+<urn:uuid:7306f8f9-1a68-4f90-9d29-c6cde17e74c1> a cr:TargetReport ;
+    cr:satisfactionState cr:Satisfied .
+
+<urn:uuid:3d496620-54fb-4fbf-8463-be55d86b27ba> a cr:PartyReport ;
+    cr:satisfactionState cr:Satisfied .
+
+<urn:uuid:66bb29a0-1e4f-4a2e-8bce-879385d09b97> a cr:ActionReport ;
+    cr:satisfactionState cr:Satisfied .
+    `
+
+            const odrlPolicyQuads = parser.parse(odrlPolicyText);
+            const odrlRequestQuads = parser.parse(odrlRequestText);
+            const stateOfTheWorldQuads = parser.parse(stateOfTheWorldText);
+
+            const expectedReportQuads = parser.parse(expectedReport);
+            const report = await odrlEvaluator.evaluate(
+                odrlPolicyQuads,
+                odrlRequestQuads,
+                stateOfTheWorldQuads);    
+            expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
         })
     })
 
