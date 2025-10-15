@@ -1,7 +1,6 @@
 import "jest-rdf";
-import { Parser, Quad, Writer } from "n3";
-import { blanknodeify, CompositeODRLEvaluator, ODRLEngineMultipleSteps, ODRLEvaluator, uuidify, prefixes } from "../../src";
-import { write } from "@jeswr/pretty-turtle/dist";
+import { Parser, Quad } from "n3";
+import { blanknodeify, ODRLEngineMultipleSteps, ODRLEvaluator } from "../../src";
 
 // request 1
 const request1 = `
@@ -257,13 +256,13 @@ ex:purpose a dpv:AccountManagement .
 <urn:uuid:a8f77e09-117f-4044-a8d4-768ecc5aeb43> a cr:PolicyReport ;
     dct:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
     cr:policy <urn:uuid:18a5175e-33e4-4f66-895d-97bcbd4e427b> ;
-    cr:policyRequest <urn:uuid:480915ba-6784-4596-be02-34b35899d000> ;
+    cr:policyRequest <urn:uuid:ce9fc20e-7c79-474e-8afe-7605accccee8> ;
     cr:ruleReport <urn:uuid:d34fc225-f547-4239-821e-d639f73d4cc9> .
 
 <urn:uuid:d34fc225-f547-4239-821e-d639f73d4cc9> a cr:PermissionReport ;
     cr:attemptState cr:Attempted ;
     cr:rule <urn:uuid:1c63f3af-7c09-4748-9002-1868f6816b16> ;
-    cr:ruleRequest <urn:uuid:2a2bcfe6-b421-4279-9e0f-223567a93548> ;
+    cr:ruleRequest <urn:uuid:e51a43e4-616f-4f32-906b-2359955228e5> ;
     cr:premiseReport <urn:uuid:ceee3728-ee68-4971-bf20-64892e8eee69>, <urn:uuid:d1e9b76b-a785-49fa-90d1-68bc457d346d>, <urn:uuid:0abaec0b-c686-4b89-b37f-99fb9beef569>, <urn:uuid:f6d64365-7252-48f9-abde-188cf1746401> ;
     cr:activationState cr:Active .
 
@@ -362,13 +361,13 @@ ex:purpose a dpv:AccountManagement .
 <urn:uuid:a8f77e09-117f-4044-a8d4-768ecc5aeb43> a cr:PolicyReport ;
     dct:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
     cr:policy <urn:uuid:b791d8a7-8e49-4428-be77-d4bb5aeffc20> ;
-    cr:policyRequest <urn:uuid:480915ba-6784-4596-be02-34b35899d000> ;
+    cr:policyRequest <urn:uuid:ce9fc20e-7c79-474e-8afe-7605accccee8> ;
     cr:ruleReport <urn:uuid:d34fc225-f547-4239-821e-d639f73d4cc9> .
 
 <urn:uuid:d34fc225-f547-4239-821e-d639f73d4cc9> a cr:PermissionReport ;
     cr:attemptState cr:Attempted ;
     cr:rule <urn:uuid:79b34c79-b550-4ccf-9331-ef83c27f390f> ;
-    cr:ruleRequest <urn:uuid:2a2bcfe6-b421-4279-9e0f-223567a93548> ;
+    cr:ruleRequest <urn:uuid:e51a43e4-616f-4f32-906b-2359955228e5> ;
     cr:premiseReport <urn:uuid:ceee3728-ee68-4971-bf20-64892e8eee69>, <urn:uuid:d1e9b76b-a785-49fa-90d1-68bc457d346d>, <urn:uuid:0abaec0b-c686-4b89-b37f-99fb9beef569>, <urn:uuid:f6d64365-7252-48f9-abde-188cf1746401> ;
     cr:activationState cr:Active .
 
@@ -650,6 +649,7 @@ ex:purpose a dpv:AccountManagement .
                 odrlPolicyQuads,
                 odrlRequestQuads,
                 stateOfTheWorldQuads);    
+
             expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
         })
     })

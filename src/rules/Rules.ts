@@ -335,14 +335,12 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
     ?premiseReport a report:ConstraintReport ;
         report:constraint ?constraint ;
         report:constraintLeftOperand ?leftOperand .
-
+    ?constraint odrl:operator odrl:isNoneOf .
     # Verify that there are no matches between the right operand value and the value that is actually present (through the sotw or evaluation request)
     (
         ?template
         {
-        ?constraint 
-            odrl:operator odrl:isNoneOf ;
-            odrl:rightOperand ?rightOperand .
+        ?constraint odrl:rightOperand ?rightOperand .
         ?leftOperand log:equalTo ?rightOperand .
         }
         ?L
@@ -634,10 +632,9 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 
    ?targetReport a report:TargetReport .     
      
-   ?permission odrl:target ?iri .
+   ?permission odrl:target ?assetCollection .
 
-   ?iri a odrl:AssetCollection.
-   ?iri odrl:source ?assetCollection .
+   ?assetCollection a odrl:AssetCollection.
 
    ?requestPermission odrl:target ?resourceInCollection .
 
@@ -703,10 +700,9 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    
    ?partyReport a report:PartyReport .
 
-   ?permission odrl:assignee ?iri .
+   ?permission odrl:assignee ?partyCollection .
 
-   ?iri a odrl:PartyCollection.
-   ?iri odrl:source ?partyCollection .
+   ?partyCollection a odrl:PartyCollection.
 
    ?requestPermission odrl:assignee ?requestedParty .
 
@@ -725,9 +721,9 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
        report:ruleRequest ?requestPermission .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
-   ?permission odrl:action ?resource .
+   ?permission odrl:action ?action .
    
-   ( ?resource ) :getUUID ?urnUuid .
+   ( ?action ) :getUUID ?urnUuid .
 }
 => 
 {
@@ -743,7 +739,6 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
@@ -763,7 +758,6 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
@@ -782,7 +776,6 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 

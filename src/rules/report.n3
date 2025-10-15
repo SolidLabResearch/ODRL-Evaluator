@@ -120,10 +120,9 @@
 
    ?targetReport a report:TargetReport .     
      
-   ?permission odrl:target ?iri .
+   ?permission odrl:target ?assetCollection .
 
-   ?iri a odrl:AssetCollection.
-   ?iri odrl:source ?assetCollection .
+   ?assetCollection a odrl:AssetCollection.
 
    ?requestPermission odrl:target ?resourceInCollection .
 
@@ -189,10 +188,9 @@
    
    ?partyReport a report:PartyReport .
 
-   ?permission odrl:assignee ?iri .
+   ?permission odrl:assignee ?partyCollection .
 
-   ?iri a odrl:PartyCollection.
-   ?iri odrl:source ?partyCollection .
+   ?partyCollection a odrl:PartyCollection.
 
    ?requestPermission odrl:assignee ?requestedParty .
 
@@ -211,9 +209,9 @@
        report:ruleRequest ?requestPermission .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
-   ?permission odrl:action ?resource .
+   ?permission odrl:action ?action .
    
-   ( ?resource ) :getUUID ?urnUuid .
+   ( ?action ) :getUUID ?urnUuid .
 }
 => 
 {
@@ -229,7 +227,6 @@
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
@@ -249,7 +246,6 @@
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
@@ -268,7 +264,6 @@
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
