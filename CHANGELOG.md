@@ -1,7 +1,23 @@
 # ODRL Evaluator release notes
 
-## [0.4.0](https://github.com/SolidLabResearch/ODRL-Evaluator/compare/v0.3.0...v0.4.0)
+## [0.5.0](https://github.com/SolidLabResearch/ODRL-Evaluator/compare/v0.4.0...v0.5.0) (2025-10-15)
 
+### Features
+
+* add functionality for isNoneOf ([f6cf5c7](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/f6cf5c734895f709cce41928da2cfa2ca328c133))
+* add test case for odrl:date as right operand value ([bdf9729](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/bdf9729e5ad96a5d3bca0479ec28bbff751ae76f))
+* implement odrl:isA and provide test cases for purpose (eq, isAnyOf and isA) ([7ac913d](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/7ac913d034a88a41851c340d4bf6f76b02c52843))
+* purpose and odrl isanyof implemented ([b3be854](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/b3be854f922b321b906180e0a0bb76c5e2df53ca))
+
+### Fixes
+
+* adjust asset and party collection rule and respective test cases ([1e5680c](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/1e5680cb556df9bbd3262709ac7255005d1377f3))
+
+### Documentation
+
+* add release notes ([bf92ae9](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/bf92ae9272e5f651e38f0837b48f99e06a24e770))
+
+## [0.4.0](https://github.com/SolidLabResearch/ODRL-Evaluator/compare/v0.3.0...v0.4.0)
 
 ### Features
 
