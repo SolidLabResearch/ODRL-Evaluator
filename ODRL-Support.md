@@ -127,6 +127,30 @@ When this is not the case, no satisfaction of this constraint can be obtained.
 To check for membership in an Asset Collection, the `odrl:partOf` property is used as stated in [ODRL IM §2.2.2](https://www.w3.org/TR/odrl-model/#asset-partof).
 
 Example rule of Asset when Asset Collection is present:
+```notation3
+{
+   ?ruleReport a ?ruleReportType ;
+       report:rule ?permission ;
+       report:ruleRequest ?requestPermission ;
+       report:premiseReport ?targetReport .
+   ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
+
+   ?targetReport a report:TargetReport .     
+     
+   ?permission odrl:target ?assetCollection .
+
+   ?assetCollection a odrl:AssetCollection.
+
+   ?requestPermission odrl:target ?resourceInCollection .
+
+   ?resourceInCollection odrl:partOf ?assetCollection .
+}
+=> 
+{
+   ?targetReport report:satisfactionState report:Satisfied .
+} .
+```
+
 Note that the rule is a bit odd. This was also pointed out by [Joshua Corenjo](https://github.com/joshcornejo) in a [github issue](https://github.com/w3c/odrl/issues/64#issue-2572434743).
 
 
@@ -183,10 +207,10 @@ Columns of the table elaborated:
 | Greater than             | [`odrl:gt`](http://www.w3.org/ns/odrl/2/gt)             | ✅         | ❌          | ✅         |
 | Greater than or equal to | [`odrl:gteq`](http://www.w3.org/ns/odrl/2/gteq)         | ✅         | ❌          | ✅         |
 | Has part                 | [`odrl:hasPart`](http://www.w3.org/ns/odrl/2/hasPart)   | ✅         | ❌          | ❌         |
-| Is a                     | [`odrl:isA`](http://www.w3.org/ns/odrl/2/isA)           | ✅         | ❌          | ❌         |
+| Is a                     | [`odrl:isA`](http://www.w3.org/ns/odrl/2/isA)           | ✅         | ❌          | ✅         |
 | Is all of                | [`odrl:isAllOf`](http://www.w3.org/ns/odrl/2/isAllOf)   | ✅         | ❌          | ❌         |
-| Is any of                | [`odrl:isAnyOf`](http://www.w3.org/ns/odrl/2/isAnyOf)   | ✅         | ❌          | ❌         |
-| Is none of               | [`odrl:isNoneOf`](http://www.w3.org/ns/odrl/2/isNoneOf) | ✅         | ❌          | ❌         |
+| Is any of                | [`odrl:isAnyOf`](http://www.w3.org/ns/odrl/2/isAnyOf)   | ✅         | ❌          | ✅         |
+| Is none of               | [`odrl:isNoneOf`](http://www.w3.org/ns/odrl/2/isNoneOf) | ✅         | ❌          | ✅         |
 | Is part of               | [`odrl:isPartOf`](http://www.w3.org/ns/odrl/2/isPartOf) | ✅         | ❌          | ❌         |
 | Less than                | [`odrl:lt`](http://www.w3.org/ns/odrl/2/lt)             | ✅         | ❌          | ✅         |
 | Less than or equal to    | [`odrl:lteq`](http://www.w3.org/ns/odrl/2/lteq)         | ✅         | ❌          | ✅         |
@@ -221,7 +245,7 @@ Columns of the table elaborated:
 | Payment Amount                    | [`odrl:payAmount`](http://www.w3.org/ns/odrl/2/payAmount)                               | ❌         | ❌          | ❌         |
 | Asset Percentage                  | [`odrl:percentage`](http://www.w3.org/ns/odrl/2/percentage)                             | ❌         | ❌          | ❌         |
 | Product Context                   | [`odrl:product`](http://www.w3.org/ns/odrl/2/product)                                   | ❌         | ❌          | ❌         |
-| Purpose                           | [`odrl:purpose`](http://www.w3.org/ns/odrl/2/purpose)                                   | ❌         | ❌          | ❌         |
+| Purpose                           | [`odrl:purpose`](http://www.w3.org/ns/odrl/2/purpose)                                   | ❌         | ❌          | ✅         |
 | Recipient                         | [`odrl:recipient`](http://www.w3.org/ns/odrl/2/recipient)                               | ❌         | ❌          | ❌         |
 | Relative Asset Position           | [`odrl:relativePosition`](http://www.w3.org/ns/odrl/2/relativePosition)                 | ❌         | ❌          | ❌         |
 | Relative Asset Size               | [`odrl:relativeSize`](http://www.w3.org/ns/odrl/2/relativeSize)                         | ❌         | ❌          | ❌         |

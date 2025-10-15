@@ -1,5 +1,21 @@
 # ODRL Evaluator
 
+## v0.5.0
+
+### New features
+
+- Support for the purpose constraint
+  - The purpose is added as a constraint using the `https://w3id.org/force/sotw#context`. Note that this is an intermediary step between current inputs and the future inputs of the ODRL Evaluator: https://w3id.org/force/sotw
+- Support for following set based operators
+  - `odrl:isAnyOf`
+  - `odrl:isA`
+  - `odrl:isNoneOf`
+
+### Fixes
+
+- Fix to the way Party and Asset collections are handled
+  - addressed in the rules (`src/rules/report.n3`) and the test suite (`test/integration/ODRL-Test-Suite.test.ts`)
+
 ## v0.4.0
 
 ### New features

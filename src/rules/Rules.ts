@@ -8,6 +8,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix report: <https://w3id.org/force/compliance-report#> .
 @prefix temp: <http://example.com/request/> .
+@prefix sotw: <https://w3id.org/force/sotw#> .
 @prefix : <http://example.org/> .
 @prefix math: <http://www.w3.org/2000/10/swap/math#> .
 @prefix dct: <http://purl.org/dc/terms/> .
@@ -46,7 +47,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 
 # Constraint report
 
-# Connect constraint to rule
+# Connect constraint Report to Rule Report
 { 
     ?rule odrl:constraint ?constraint.
     ?ruleReport report:rule ?rule .
@@ -55,26 +56,103 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
     ?ruleReport report:premiseReport ?premiseReport .
 }.
 
-# Left Operand Conversion
-# odrl:dateTime to xsd:dateTime
-# https://www.w3.org/TR/odrl-vocab/#term-dateTime
+# Creates a premiseReport for each constraint there is (starting from a rule)
 {
-    ?constraint odrl:leftOperand odrl:dateTime .
-    temp:currentTime dct:issued ?dateTime .
+    _:a odrl:constraint ?constraint .
     ( ?constraint ) :getUUID ?premiseReport .
-
-    # TODO: check whether rightoperand is xsd:dateTime
 
 } => { 
     ?premiseReport a report:ConstraintReport ;
-        report:constraint ?constraint ;
-        report:constraintLeftOperand ?dateTime .
+        report:constraint ?constraint .
 }.
-# TODO: odrl:dateTime to xsd:date
-# https://www.w3.org/TR/odrl-vocab/#term-dateTime
-# TODO: check whether rightoperand is xsd:date
 
-# Operand
+# Creates a premiseReport for each constraint there is (starting from a logical operator)
+{
+    _:a ?logicaloperand ?constraint .
+    ?logicaloperand list:in ( odrl:or odrl:xone odrl:and odrl:andSequence ) .
+
+    ( ?constraint ) :getUUID ?premiseReport .
+} => {
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint .
+} .
+#######################################################################################################################
+# Left Operand Conversion
+
+# odrl:dateTime to xsd:dateTime
+# https://www.w3.org/TR/odrl-vocab/#term-dateTime
+{
+    # bind created premiseReport
+    ?premiseReport report:constraint ?constraint .
+
+    ?constraint odrl:leftOperand odrl:dateTime .
+    temp:currentTime dct:issued ?dateTime .
+
+    # TODO: check whether rightoperand is xsd:dateTime -> Not here; SHACL validation of constraints
+
+} => { 
+    ?premiseReport report:constraintLeftOperand ?dateTime .
+}.
+
+# odrl:purpose
+# https://www.w3.org/TR/odrl-vocab/#term-purpose
+# Create empty premise report for purposes (no purpose present in the evaluation request)
+{ 
+    # check for number of purposes in evaluation request
+    (
+        ?template
+        {
+            ?requestPermission sotw:context ?requestContextConstraint .
+            ?requestContextConstraint odrl:leftOperand odrl:purpose .        
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    # number of purposes in evaluation request is 0
+    ?L list:length 0 .
+
+    # a rule with a purpose constraint
+    _:a odrl:constraint ?constraint .
+    ?constraint odrl:leftOperand odrl:purpose .
+    
+    # created premiseReport
+    ?premiseReport report:constraint ?constraint .
+} => {
+    ?premiseReport report:constraintLeftOperand "" . #TODO: do we need a default purpose?
+}.
+
+# Create empty premise report for purposes (one present in the evaluation request)
+{ 
+    ?requestPermission sotw:context ?requestContextConstraint .
+    ?requestContextConstraint odrl:leftOperand odrl:purpose .
+    ?requestContextConstraint odrl:rightOperand ?requestedPurpose .
+
+    # check for number of purposes in evaluation request
+    (
+        ?template
+        {
+            ?requestPermission sotw:context ?requestContextConstraint .
+            ?requestContextConstraint odrl:leftOperand odrl:purpose .
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    # number of purposes in evaluation request is 1
+    ?L list:length 1 .
+
+    # a rule with a purpose constraint
+    _:a odrl:constraint ?constraint .
+    ?constraint odrl:leftOperand odrl:purpose .
+    
+    # created premiseReport
+    ?premiseReport report:constraint ?constraint .
+} => {
+    ?premiseReport report:constraintLeftOperand ?requestedPurpose . 
+}.
+
+
+#######################################################################################################################
+# Comparing the operators using the different odrl operators
+# Ordered operators
+
 # Less than: odrl:lt
 { 
     ?constraint 
@@ -112,7 +190,10 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+
 # Equal to: odrl:eq
+# Recommendation by Jos on 03/10/2025: equality is difficult. Use both math:equalTo and log:equalTo
+# OR operator does not exist in N3, so that's why you have to do it like this
 # https://w3c.github.io/N3/reports/20230703/builtins.html#math:equalTo
 { 
     ?constraint 
@@ -131,6 +212,27 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+
+# https://w3c.github.io/N3/reports/20230703/builtins.html#log:equalTo
+{ 
+    ?constraint 
+        odrl:operator odrl:eq ;
+        odrl:rightOperand ?rightOperand .
+
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand log:equalTo ?rightOperand .
+
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:eq ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+
 # Greater than or equal to: odrl:gteq
 # https://w3c.github.io/N3/reports/20230703/builtins.html#math:notLessThan
 { 
@@ -188,12 +290,84 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
         report:constraintRightOperand ?rightOperand ;
         report:satisfactionState report:Satisfied .
 } .
+
+# Set-based Operators
+# Is any of: odrl:isAnyOf
+# There is a right operand value that equals the value that is actually present (through the sotw or evaluation request)
+# https://w3c.github.io/N3/reports/20230703/builtins.html#log:equalTo
+{
+    ?constraint 
+        odrl:operator odrl:isAnyOf ;
+        odrl:rightOperand ?rightOperand .
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+
+    ?leftOperand log:equalTo ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:isAnyOf ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+# Is an instance of: odrl:isA
+{
+    ?constraint 
+        odrl:operator odrl:isA ;
+        odrl:rightOperand ?rightOperand .
+    
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+	?leftOperand a ?instance .
+  
+    ?instance log:equalTo ?rightOperand .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:isA ;
+        report:constraintRightOperand ?rightOperand ;
+        report:satisfactionState report:Satisfied .
+} .
+# Is none of: odrl:isNoneOf
+{
+    ?premiseReport a report:ConstraintReport ;
+        report:constraint ?constraint ;
+        report:constraintLeftOperand ?leftOperand .
+    ?constraint odrl:operator odrl:isNoneOf .
+    # Verify that there are no matches between the right operand value and the value that is actually present (through the sotw or evaluation request)
+    (
+        ?template
+        {
+        ?constraint odrl:rightOperand ?rightOperand .
+        ?leftOperand log:equalTo ?rightOperand .
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    ?L list:length 0 .
+} =>
+{
+    ?premiseReport 
+        report:constraintOperator odrl:isNoneOf ;
+        report:satisfactionState report:Satisfied .
+} .
+# Make set-based reports complete by logging the remainder
+{
+    ?premiseReport report:constraintOperator ?operator ;
+        report:constraint ?constraint .
+    ?operator list:in ( odrl:isAnyOf odrl:isNoneOf) .
+    ?constraint odrl:rightOperand ?rightOperand .
+} => {
+    ?premiseReport report:constraintRightOperand ?rightOperand .
+} . 
+#######################################################################################################################
 # Logical operands
 # logical operand premisereport generation
 { 
     # match and constraint
     ?constraint a odrl:LogicalConstraint;
-       ?operandType?otherConstraint .
+       ?operandType ?otherConstraint .
     
     ?operandType list:in ( odrl:and odrl:or odrl:xone odrl:andSequence) .
     # create uuid
@@ -344,6 +518,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
     ?logicalConstraintReportID report:satisfactionState report:Satisfied  .
 
 }.
+#######################################################################################################################
 # Policy report
 {
    ?policy a ?policyType .
@@ -457,10 +632,9 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 
    ?targetReport a report:TargetReport .     
      
-   ?permission odrl:target ?iri .
+   ?permission odrl:target ?assetCollection .
 
-   ?iri a odrl:AssetCollection.
-   ?iri odrl:source ?assetCollection .
+   ?assetCollection a odrl:AssetCollection.
 
    ?requestPermission odrl:target ?resourceInCollection .
 
@@ -526,10 +700,9 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    
    ?partyReport a report:PartyReport .
 
-   ?permission odrl:assignee ?iri .
+   ?permission odrl:assignee ?partyCollection .
 
-   ?iri a odrl:PartyCollection.
-   ?iri odrl:source ?partyCollection .
+   ?partyCollection a odrl:PartyCollection.
 
    ?requestPermission odrl:assignee ?requestedParty .
 
@@ -548,9 +721,9 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
        report:ruleRequest ?requestPermission .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
-   ?permission odrl:action ?resource .
+   ?permission odrl:action ?action .
    
-   ( ?resource ) :getUUID ?urnUuid .
+   ( ?action ) :getUUID ?urnUuid .
 }
 => 
 {
@@ -566,7 +739,6 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
@@ -586,7 +758,6 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
@@ -605,7 +776,6 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
-
    ?permission odrl:action ?action .
    ?requestPermission odrl:action ?requestedAction .
 
