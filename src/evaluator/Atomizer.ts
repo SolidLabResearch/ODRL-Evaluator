@@ -14,7 +14,7 @@ import { replaceSubject } from "../util/RDFUtil";
 /**
  * Represents an ODRL policy containing its identifier and categorized rules.
  */
-export type Policy = {
+type Policy = {
     /** Unique identifier for the policy */
     identifier: Term,
     /** List of permission rules associated with the policy */
@@ -28,7 +28,7 @@ export type Policy = {
 /**
  * Represents a single ODRL rule.
  */
-export type Rule = {
+type Rule = {
     /** Identifier of the policy this rule belongs to */
     policyID: Term,
     /** Unique identifier for the rule */

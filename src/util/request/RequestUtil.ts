@@ -1,7 +1,7 @@
 import { DataFactory, Quad, Store } from "n3";
 import { createRandomUrn } from "../Util";
 import { DC, ODRL, RDF, SOTW } from "../Vocabularies";
-import { makeRDFConstraint } from "../policy/PolicyUtil";
+import { Constraint, makeRDFConstraint } from "../policy/PolicyUtil";
 const { namedNode, quad, literal } = DataFactory;
 /**
  * Represents an ODRL-Evaluator-style Request.
@@ -27,27 +27,6 @@ export interface Request {
 
     /** A description of the request. */
     description?: string;
-}
-
-/**
- * Represents an ODRL-style Constraint.
- *
- * A Constraint defines logical conditions that must hold for a policy to apply.
- * Each constraint has a leftOperand, operator, and rightOperand, following
- * the ODRL Information Model.
- */
-export interface Constraint {
-    /** Globally unique URN identifier for the Constraint. */
-    identifier: string;
-
-    /** The attribute being tested (ODRL leftOperand, e.g. odrl:dateTime). */
-    leftOperand: string;
-
-    /** The value against which the leftOperand is compared. */
-    rightOperand: string;
-
-    /** The comparison operator (ODRL Operator, e.g. odrl:eq, odrl:gt). */
-    operator: string;
 }
 
 /**

@@ -17,3 +17,6 @@ export * from './util/Prefixes'
 
 export * from './util/report/ComplianceReportTypes'
 export * from './util/report/ComplianceReportUtil'
+export * from './util/policy/PolicyUtil'
+export * from './util/request/RequestUtil'
+export * from './util/report/ComplianceReportUtil'
