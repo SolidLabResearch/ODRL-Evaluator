@@ -5,6 +5,7 @@ import { ODRLEngineMultipleSteps } from "../../../src/evaluator/Engine";
 import { ODRLEvaluator } from "../../../src/evaluator/Evaluate";
 import { EyeReasoner } from "../../../src/reasoner/EyeReasoner";
 import { ODRL, RDF, REPORT } from "../../../src/util/Vocabularies";
+import { countSatisfiedPremises } from "../../util/ReportTest";
 
 const normalPolicy = `
 @prefix ex: <http://example.org/>.
@@ -281,7 +282,7 @@ odrl:assignee <https://both.pod.knows.idlab.ugent.be/profile/card#me> .
             expect(report.ruleReport[0].rule.id).toBe(permission1ID);
             expect(report.ruleReport[0].activationState).toBe(ActivationState.Inactive)
 
-            expect(report.ruleReport[0].premiseReport.filter(premiseReport => premiseReport.satisfactionState === SatisfactionState.Satisfied).length).toBe(2)
+            expect(countSatisfiedPremises(report.ruleReport[0].premiseReport)).toBe(2)
         })
     })
 

@@ -2,7 +2,9 @@ import { createVocabulary } from 'rdf-vocabulary';
 
 export const DC = createVocabulary(
     'http://purl.org/dc/terms/',
-    'created'
+    'created',
+    'title',
+    'description'
 )
 export const RDF = createVocabulary(
     'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
@@ -267,3 +269,27 @@ export const REPORT = createVocabulary('https://w3id.org/force/compliance-report
     'constraint',
     'satisfactionState',
 )
+
+export const SOTW = createVocabulary('https://w3id.org/force/sotw#',
+    'context',
+    'SotW',
+    'currentTime',
+    'currentLocation',
+    'assetCollection',
+    'partyCollection',
+    'existingReport',
+    'count',
+    'event',
+    'accumulatedTime',
+    'recipient',
+    'paidAmount',
+)
+
+
+export const XSD = createVocabulary(
+  'http://www.w3.org/2001/XMLSchema#',
+  'dateTime',
+  'duration',
+  'integer',
+  'string',
+);
