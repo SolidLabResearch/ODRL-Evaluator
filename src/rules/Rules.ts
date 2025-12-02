@@ -94,53 +94,59 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
     ?premiseReport report:constraintLeftOperand ?dateTime .
 }.
 
-# odrl:purpose
-# https://www.w3.org/TR/odrl-vocab/#term-purpose
-# Create empty premise report for purposes (no purpose present in the evaluation request)
+# Other ODRL constraint Left operands
+# Create empty premise report for leftOperands (no leftOperand present in the evaluation request)
 { 
-    # check for number of purposes in evaluation request
+    # acceptable ODRL Left Operands
+    ?leftOperand list:in ( odrl:absolutePosition odrl:absoluteSize odrl:absoluteSpatialPosition odrl:absoluteTemporalPosition odrl:count odrl:delayPeriod odrl:deliveryChannel odrl:device odrl:elapsedTime odrl:event odrl:fileFormat odrl:industry odrl:language odrl:media odrl:meteredTime odrl:payAmount odrl:percentage odrl:product odrl:purpose odrl:recipient odrl:relativePosition odrl:relativeSize odrl:relativeSpatialPosition odrl:relativeTemporalPosition odrl:resolution odrl:spatial odrl:spatialCoordinates odrl:system odrl:systemDevice odrl:timeInterval odrl:unitOfCount odrl:version odrl:virtualLocation ) . 
+    
+    # check for number of leftOperands in evaluation request
     (
         ?template
         {
             ?requestPermission sotw:context ?requestContextConstraint .
-            ?requestContextConstraint odrl:leftOperand odrl:purpose .        
+            ?requestContextConstraint odrl:leftOperand ?leftOperand .        
         }
         ?L
     ) log:collectAllIn ?SCOPE .
-    # number of purposes in evaluation request is 0
+    # number of leftOperands in evaluation request is 0
     ?L list:length 0 .
 
-    # a rule with a purpose constraint
+    # a rule with a leftOperand constraint
     _:a odrl:constraint ?constraint .
-    ?constraint odrl:leftOperand odrl:purpose .
+    ?constraint odrl:leftOperand ?leftOperand .
     
     # created premiseReport
     ?premiseReport report:constraint ?constraint .
 } => {
-    ?premiseReport report:constraintLeftOperand "" . #TODO: do we need a default purpose?
+    ?premiseReport report:constraintLeftOperand "" . #TODO: do we need a default null left operand value?
 }.
 
-# Create empty premise report for purposes (one present in the evaluation request)
+# Create empty premise report for leftOperands (one present in the evaluation request)
 { 
+    # acceptable ODRL Left Operands
+    ?leftOperand list:in ( odrl:absolutePosition odrl:absoluteSize odrl:absoluteSpatialPosition odrl:absoluteTemporalPosition odrl:count odrl:delayPeriod odrl:deliveryChannel odrl:device odrl:elapsedTime odrl:event odrl:fileFormat odrl:industry odrl:language odrl:media odrl:meteredTime odrl:payAmount odrl:percentage odrl:product odrl:purpose odrl:recipient odrl:relativePosition odrl:relativeSize odrl:relativeSpatialPosition odrl:relativeTemporalPosition odrl:resolution odrl:spatial odrl:spatialCoordinates odrl:system odrl:systemDevice odrl:timeInterval odrl:unitOfCount odrl:version odrl:virtualLocation ) . 
+    
+
     ?requestPermission sotw:context ?requestContextConstraint .
-    ?requestContextConstraint odrl:leftOperand odrl:purpose .
+    ?requestContextConstraint odrl:leftOperand ?leftOperand .
     ?requestContextConstraint odrl:rightOperand ?requestedPurpose .
 
-    # check for number of purposes in evaluation request
+    # check for number of leftOperands in evaluation request
     (
         ?template
         {
             ?requestPermission sotw:context ?requestContextConstraint .
-            ?requestContextConstraint odrl:leftOperand odrl:purpose .
+            ?requestContextConstraint odrl:leftOperand ?leftOperand .
         }
         ?L
     ) log:collectAllIn ?SCOPE .
-    # number of purposes in evaluation request is 1
+    # number of leftOperands in evaluation request is 1
     ?L list:length 1 .
 
     # a rule with a purpose constraint
     _:a odrl:constraint ?constraint .
-    ?constraint odrl:leftOperand odrl:purpose .
+    ?constraint odrl:leftOperand ?leftOperand .
     
     # created premiseReport
     ?premiseReport report:constraint ?constraint .

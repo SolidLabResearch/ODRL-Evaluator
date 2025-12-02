@@ -1,6 +1,15 @@
 import "jest-rdf";
 import { Parser, Quad } from "n3";
-import { blanknodeify, ODRLEngineMultipleSteps, ODRLEvaluator } from "../../src";
+import { ODRLEvaluator } from "../../src/evaluator/Evaluate";
+import { ODRLEngineMultipleSteps } from "../../src/evaluator/Engine";
+import { ODRL, REPORT } from "../../src/util/Vocabularies"
+import { blanknodeify } from "../../src/util/RDFUtil"
+import { createPolicy, makeRDFPolicy, Policy } from "../../src/util/policy/PolicyUtil";
+import { makeRDFRequest, Request } from "../../src/util/request/RequestUtil";
+import { createRandomUrn } from "../../src/util/Util";
+import { write } from "@jeswr/pretty-turtle/dist";
+import { ActivationState, parseComplianceReport, parseSingleComplianceReport, prefixes } from "../../src";
+import { countSatisfiedPremises } from "../util/ReportTest";
 
 // request 1
 const request1 = `
@@ -648,10 +657,164 @@ ex:purpose a dpv:AccountManagement .
             const report = await odrlEvaluator.evaluate(
                 odrlPolicyQuads,
                 odrlRequestQuads,
-                stateOfTheWorldQuads);    
+                stateOfTheWorldQuads);
 
             expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(expectedReportQuads))
         })
     })
+    describe('handling requests with extra context.', () => {
+        const requestID = "urn:uuid:ce9fc20e-7c79-474e-8afe-7605accccee8";
+        const requestPermissionID = "urn:uuid:ce9fc20" // TODO: remove when iterated upon compliance report
 
+        const assignee = "http://example.org/alice";
+        const resource = "http://example.org/x";
+        const action = ODRL.read;
+
+        const policyID = "urn:uuid:5ee1a7dd-ccba-49a4-92e8-6cc375509efd";
+        const policyType = ODRL.Agreement;
+        const permissionID = "urn:uuid:e51a43e4-616f-4f32-906b-2359955228e5";
+        const ruleType = ODRL.Permission
+
+        const constraintID = "urn:uuid:963698fe-3b44-4b88-8527-501b6c5765a6";
+        let policy: Policy;
+        let request: Request;
+
+        const sotwQuads = parser.parse(sotwTemporal);
+
+        beforeEach(() => {
+            policy = {
+                identifier: policyID,
+                type: policyType,
+                rules: [{
+                    assignee: assignee,
+                    target: resource,
+                    action: action,
+                    type: ruleType,
+                    identifier: permissionID,
+                    constraints: []
+                }]
+            }
+            request = {
+                assignee: assignee,
+                resource: resource,
+                action: action,
+                identifier: requestID,
+                context: []
+            }
+        })
+
+        it('Happy flow evaluation of an ODRL policy with a deliveryChannel constraint.', async () => {
+            const leftOperand = ODRL.deliveryChannel;
+            const operator = ODRL.eq;
+            const rightOperand = "https://podpro.dev/id";
+            policy.rules[0].constraints.push({
+                leftOperand: leftOperand,
+                rightOperand: rightOperand,
+                operator: operator,
+                identifier: constraintID
+            })
+            const policyQuads = makeRDFPolicy(policy)
+
+            request.context.push({
+                leftOperand: leftOperand,
+                rightOperand: rightOperand,
+                operator: operator,
+                identifier: createRandomUrn()
+            })
+            const requestQuads = makeRDFRequest(request, requestPermissionID)
+
+            const report = await odrlEvaluator.evaluate(policyQuads, requestQuads, sotwQuads);
+            const policyReport = parseSingleComplianceReport(report);
+            expect(policyReport.ruleReport.length).toBe(1)
+            expect(policyReport.ruleReport[0].activationState).toBe(REPORT.Active)
+            expect(policyReport.ruleReport[0].premiseReport.length).toBe(4);
+            expect(countSatisfiedPremises(policyReport.ruleReport[0].premiseReport)).toBe(4);
+        });
+
+        it('Bad evaluation of an ODRL policy with a deliveryChannel constraint.', async () => {
+            const leftOperand = ODRL.deliveryChannel;
+            const operator = ODRL.eq;
+            const rightOperand = "https://podpro.dev/id";
+            policy.rules[0].constraints.push({
+                leftOperand: leftOperand,
+                rightOperand: rightOperand,
+                operator: operator,
+                identifier: constraintID
+            })
+            const policyQuads = makeRDFPolicy(policy)
+
+            request.context.push({
+                leftOperand: leftOperand,
+                rightOperand: "https://someOtherClient.id",
+                operator: operator,
+                identifier: createRandomUrn()
+            })
+            const requestQuads = makeRDFRequest(request, requestPermissionID)
+
+            const report = await odrlEvaluator.evaluate(policyQuads, requestQuads, sotwQuads);
+            const policyReport = parseSingleComplianceReport(report);
+            expect(policyReport.ruleReport.length).toBe(1)
+            expect(policyReport.ruleReport[0].activationState).toBe(REPORT.Inactive)
+            expect(policyReport.ruleReport[0].premiseReport.length).toBe(4);
+            expect(countSatisfiedPremises(policyReport.ruleReport[0].premiseReport)).toBe(3);
+        });
+
+        it('Happy flow evaluation of an ODRL policy with a purpose constraint.', async () => {
+            const leftOperand = ODRL.purpose;
+            const operator = ODRL.eq;
+            const rightOperand = "https://w3id.org/dpv#AccountManagement";
+
+            policy.rules[0].constraints.push({
+                leftOperand: leftOperand,
+                rightOperand: rightOperand,
+                operator: operator,
+                identifier: constraintID
+            })
+            const policyQuads = makeRDFPolicy(policy)
+
+            request.context.push({
+                leftOperand: leftOperand,
+                rightOperand: rightOperand,
+                operator: operator,
+                identifier: createRandomUrn()
+            })
+            const requestQuads = makeRDFRequest(request, requestPermissionID)
+
+            const report = await odrlEvaluator.evaluate(policyQuads, requestQuads, sotwQuads);
+            const policyReport = parseSingleComplianceReport(report);
+            expect(policyReport.ruleReport.length).toBe(1)
+            expect(policyReport.ruleReport[0].activationState).toBe(REPORT.Active)
+            expect(policyReport.ruleReport[0].premiseReport.length).toBe(4);
+            expect(countSatisfiedPremises(policyReport.ruleReport[0].premiseReport)).toBe(4);
+        })
+
+        it('Bad evaluation of an ODRL policy with a purpose constraint.', async () => {
+            const leftOperand = ODRL.purpose;
+            const operator = ODRL.eq;
+            const rightOperand = "https://w3id.org/dpv#AccountManagement";
+
+            policy.rules[0].constraints.push({
+                leftOperand: leftOperand,
+                rightOperand: rightOperand,
+                operator: operator,
+                identifier: constraintID
+            })
+            const policyQuads = makeRDFPolicy(policy)
+
+            request.context.push({
+                leftOperand: ODRL.deliveryChannel,
+                rightOperand: rightOperand,
+                operator: operator,
+                identifier: createRandomUrn()
+            })
+            const requestQuads = makeRDFRequest(request, requestPermissionID)
+
+            const report = await odrlEvaluator.evaluate(policyQuads, requestQuads, sotwQuads);
+            const policyReport = parseSingleComplianceReport(report);
+            expect(policyReport.ruleReport.length).toBe(1)
+            expect(policyReport.ruleReport[0].activationState).toBe(REPORT.Inactive)
+            expect(policyReport.ruleReport[0].premiseReport.length).toBe(4);
+            expect(countSatisfiedPremises(policyReport.ruleReport[0].premiseReport)).toBe(3);
+        })
+    })
 });

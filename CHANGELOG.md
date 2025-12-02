@@ -1,5 +1,18 @@
 # ODRL Evaluator release notes
 
+## [0.5.1](https://github.com/SolidLabResearch/ODRL-Evaluator/compare/v0.5.0...v0.5.2) (2025-12-02)
+
+
+### Features
+
+* introduce generic request constraints + add utilities for generating policies and requests + add utility for parsing compliance reports ([7a4878f](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/7a4878f3aee50f2d2ad1caf257273c515b05790a))
+
+
+### Fixes
+
+* add missing utility function for the test suite ([2f8576e](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/2f8576ee9ed72512467f6adba41407ae1457d2f3))
+* update js-yaml in package-lock for vulnerability reasons ([9d71463](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/9d71463142b295cc0df412b1ef7d3fce83f107dd))
+
 ## [0.5.0](https://github.com/SolidLabResearch/ODRL-Evaluator/compare/v0.4.0...v0.5.0) (2025-10-15)
 
 ### Features

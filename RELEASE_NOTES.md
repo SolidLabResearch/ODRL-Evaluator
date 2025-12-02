@@ -1,5 +1,16 @@
 # ODRL Evaluator
 
+## 0.5.1 
+
+### New Features
+
+* Support for all constraints (so for all Left Operands) following the approach of `sotw:Context`
+* Addition of utilities for generating simple ODRL Policies and the ODRL Request as Quad[]
+  * `src/util/policy/PolicyUtil.ts`
+  * `src/util/request/RequestUtil.ts`
+* Addition of a parser for the Compliance Report Util
+  * `src/util/report/ComplianceReportUtil.ts`
+
 ## v0.5.0
 
 ### New features

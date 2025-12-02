@@ -6,5 +6,6 @@ export const prefixes = {
     odrl: "http://www.w3.org/ns/odrl/2/",
     schema: "https://schema.org/",
     xsd: "http://www.w3.org/2001/XMLSchema#",
-    dpv: "https://w3id.org/dpv#"
+    dpv: "https://w3id.org/dpv#",
+    sotw: "https://w3id.org/force/sotw#"
   }
