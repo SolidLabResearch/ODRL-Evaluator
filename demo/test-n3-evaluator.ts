@@ -1,4 +1,5 @@
-import { ODRLEngineMultipleSteps, ODRLEvaluator, resourceToOptimisedTurtle, turtleStringToStore } from "../dist/index";
+import { ODRLEngineMultipleSteps, ODRLEvaluator, prefixes, turtleStringToStore } from "../dist/index";
+import { write } from '@jeswr/pretty-turtle';
 
 
 const odrlPolicyText = `
@@ -68,19 +69,8 @@ async function main() {
         odrlRequestStore.getQuads(null, null, null, null),
         stateOfTheWorldStore.getQuads(null, null, null, null))
     // printing report nicely
-    const prefixes = {
-        'odrl': 'http://www.w3.org/ns/odrl/2/',
-        'ex': 'http://example.org/',
-        'temp': 'http://example.com/request/',
-        'dct': 'http://purl.org/dc/terms/',
-        'xsd': 'http://www.w3.org/2001/XMLSchema#',
-        'foaf': 'http://xmlns.com/foaf/0.1/',
-        'report': 'https://w3id.org/force/compliance-report#'
-    }
 
-    // created report with N3
-    // @ts-ignore
-    console.log(resourceToOptimisedTurtle(reasoningResult, prefixes));
+    console.log(await write(reasoningResult, {prefixes}));
 
 }
 main()

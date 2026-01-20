@@ -1,7 +1,7 @@
+import { write } from '@jeswr/pretty-turtle';
 import * as fs from "fs";
-import { Store } from "n3";
 import * as path from "path";
-import { EyeJsReasoner, EyeReasoner, ODRLN3Engine, storeToString, turtleStringToStore } from "../dist/index";
+import { EyeJsReasoner, EyeReasoner, ODRLN3Engine, prefixes, turtleStringToStore } from "../dist/index";
 
 const odrlPolicyText = `
 @prefix odrl: <http://www.w3.org/ns/odrl/2/>.
@@ -78,10 +78,12 @@ async function main() {
     const reasoningResultJs = await ODRLEyeJsEngine.evaluate(input);
 
     console.log("Compliance Report evaluated using the EYE JS reasoner");
-    console.log(storeToString(new Store(reasoningResultJs)));
+    console.log(await write(reasoningResultJs, {prefixes}));
+
     console.log();
     console.log("Compliance Report evaluated using the EYE reasoner (local)");
-    console.log(storeToString(new Store(reasoningResultLocal)));
+    console.log(await write(reasoningResultLocal, {prefixes}));
+
 
 }
 main()

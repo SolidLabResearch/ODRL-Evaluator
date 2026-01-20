@@ -40,8 +40,12 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 }
 <= 
 {
+   # 0. add some skolem uri to introduce randomness when there are multiple runs with the same ID
+  ( "test" ) log:skolem ?skolem .
+  (?input (?skolem) ) list:append ?newList .
+  
    # 1. Convert input to a stable string
-   ?input :listToString ?inputString .
+   ?newList :listToString ?inputString .
    
    # 2. Generate a stable hash (works identically in 2026 eyeJS and Eyeling)
     ?inputString  crypto:sha ?hash .
