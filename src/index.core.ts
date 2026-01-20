@@ -4,7 +4,7 @@ export * from './evaluator/Engine'
 export * from './evaluator/Evaluate'
 export * from './evaluator/Validate'
 
-export * from './reasoner/EyeJsReasoner'
+export * from './reasoner/EyeJsReasoner'export * from './reasoner/EyelingReasoner'
 export * from './reasoner/Reasoner'
 
 export * from './rules/Rules'
@@ -19,4 +19,3 @@ export * from './util/report/ComplianceReportTypes'
 export * from './util/report/ComplianceReportUtil'
 export * from './util/policy/PolicyUtil'
 export * from './util/request/RequestUtil'
-export * from './util/report/ComplianceReportUtil'

@@ -1,11 +1,22 @@
-import { ODRLEngineMultipleSteps, ODRLEvaluator, blanknodeify } from "../../src";
+import { EyelingReasoner, ODRLEngineMultipleSteps, ODRLEvaluator, blanknodeify } from "../../src";
 import { Parser, Quad } from "n3";
 import "jest-rdf";
 
-describe('The ODRL evaluator succeeds following test case ', () => {
-    const parser = new Parser();
-    const odrlEvaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps());
+const engines = [
+    {
+        name: 'Eyeling Reasoner',
+        evaluator: new ODRLEvaluator(new ODRLEngineMultipleSteps({ reasoner: new EyelingReasoner() }))
+    },
+    {
+        name: 'Default Engine',
+        evaluator: new ODRLEvaluator(new ODRLEngineMultipleSteps())
+    }
+];
 
+engines.forEach(({ name, evaluator }) => {
+    describe(`The ODRL evaluator with ${name} succeeds following test case`, () => {
+        const parser = new Parser();
+        const odrlEvaluator = evaluator;
         it('urn:uuid:e2123eb7-0707-4f24-bcc0-9d61dd9088a9: Any request results into yes (Alice Request).', async () => {
         
     const odrlPolicy = `@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
@@ -3934,7 +3945,6 @@ ex:alice a foaf:Person ;
 
     expect(blanknodeify(report as any as Quad[])).toBeRdfIsomorphic(blanknodeify(parser.parse(expectedReport)));
     });
-
-          
+    })
 })
 

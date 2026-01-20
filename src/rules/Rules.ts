@@ -1,5 +1,6 @@
 export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap/string#> .
 @prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix crypto: <http://www.w3.org/2000/10/swap/crypto#> .
 @prefix : <http://example.org/> .
 @prefix math: <http://www.w3.org/2000/10/swap/math#> .
 @prefix dct: <http://purl.org/dc/terms/> .
@@ -39,10 +40,40 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 }
 <= 
 {
-   ?input log:skolem ?uniqueNode .
-   ?uniqueNode log:uuid ?uuidString .
-   ( "urn:uuid:" ?uuidString ) string:concatenation ?urnUuidString .
+   # 1. Convert input to a stable string
+   ?input :listToString ?inputString .
+   
+   # 2. Generate a stable hash (works identically in 2026 eyeJS and Eyeling)
+    ?inputString  crypto:sha ?hash .
+   
+   # 3. Format the hash into a UUID-compliant structure (8-4-4-4-12)
+   ( ?hash "^(.{8}).*$" ) string:scrape ?p1 .
+   ( ?hash "^.{8}(.{4}).*$" ) string:scrape ?p2 .
+   ( ?hash "^.{12}(.{4}).*$" ) string:scrape ?p3 .
+   ( ?hash "^.{16}(.{4}).*$" ) string:scrape ?p4 .
+   ( ?hash "^.{20}(.{12}).*$" ) string:scrape ?p5 .
+   ( "urn:uuid:" ?p1 "-" ?p2 "-" ?p3 "-" ?p4 "-" ?p5 ) string:concatenation ?urnUuidString .
+   
+   # 4. Cast the final string to a URI
    ?urnUuid log:uri ?urnUuidString .
+} .
+
+# 1. Base Case: An empty list results in an empty string
+{ () :listToString "" } <= { } .
+
+# 2. Recursive Case: Process list using rdf:first and rdf:rest
+{ ?list :listToString ?result } <= {
+    ?list rdf:first ?head .
+    ?list rdf:rest ?tail .
+    
+    # Convert the current URI to a string
+    ?head log:uri ?headStr .
+    
+    # Recursively convert the tail of the list
+    ?tail :listToString ?tailStr .
+    
+    # Combine head and tail strings
+    ( ?headStr ?tailStr ) string:concatenation ?result .
 } .
 
 # Constraint report
