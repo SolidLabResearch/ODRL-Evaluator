@@ -4,7 +4,8 @@ export * from './evaluator/Engine'
 export * from './evaluator/Evaluate'
 export * from './evaluator/Validate'
 
-export * from './reasoner/EyeJsReasoner'export * from './reasoner/EyelingReasoner'
+export * from './reasoner/EyeJsReasoner'
+export * from './reasoner/EyelingReasoner'
 export * from './reasoner/Reasoner'
 
 export * from './rules/Rules'
