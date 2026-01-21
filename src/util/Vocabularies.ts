@@ -3,6 +3,7 @@ import { createVocabulary } from 'rdf-vocabulary';
 export const DC = createVocabulary(
     'http://purl.org/dc/terms/',
     'created',
+    'issued',
     'title',
     'description'
 )

@@ -7,7 +7,7 @@ const { namedNode, quad } = DataFactory
 
 import { PolicyAtomizer } from "odrl-atomizer";
 import { ActivationState, PolicyReport, SatisfactionState } from "../util/report/ComplianceReportTypes";
-import { parseComplianceReport } from "../util/report/ComplianceReportUtil";
+import { parseComplianceReport } from "../util/report/ComplianceReportParsing";
 import { replaceSubject } from "../util/RDFUtil";
 
 

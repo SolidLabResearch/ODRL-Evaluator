@@ -11,17 +11,22 @@ export type PolicyReport = {
 export type RuleReport = {
     id: NamedNode;
     type: RuleReportType;
-    activationState: ActivationState
+    attemptState?: AttemptState ;
+    activationState?: ActivationState
+    performanceState?: PerformanceState
+    deonticState?: DeonticState
     rule: NamedNode;
     requestedRule: NamedNode;
-    premiseReport: PremiseReport[]
+    premiseReport: PremiseReport[];
+    conditionReport: NamedNode[];
 }
 
 export type PremiseReport = {
     id: NamedNode;
     type: PremiseReportType;
     premiseReport: PremiseReport[];
-    satisfactionState: SatisfactionState
+    satisfactionState: SatisfactionState;
+    constraint?: NamedNode
 }
 
 // is it possible to just use REPORT.namespace + "term"?
@@ -46,4 +51,21 @@ export enum PremiseReportType {
 export enum ActivationState {
     Active = 'https://w3id.org/force/compliance-report#Active',
     Inactive = 'https://w3id.org/force/compliance-report#Inactive',
+}
+
+export enum AttemptState {
+    Attempted = 'https://w3id.org/force/compliance-report#Attempted',
+    NotAttempted = 'https://w3id.org/force/compliance-report#NotAttempted',  
+}
+
+export enum PerformanceState {
+    Performed = 'https://w3id.org/force/compliance-report#Performed',
+    Unperformed = 'https://w3id.org/force/compliance-report#Unperformed',  
+    Unknown = 'https://w3id.org/force/compliance-report#Unknown',  
+}
+
+export enum DeonticState {
+    NonSet = 'https://w3id.org/force/compliance-report#NonSet',
+    Violated = 'https://w3id.org/force/compliance-report#Violated',  
+    Fulfilled = 'https://w3id.org/force/compliance-report#Fulfilled',   
 }

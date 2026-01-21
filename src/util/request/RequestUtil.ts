@@ -1,7 +1,7 @@
 import { DataFactory, Quad, Store } from "n3";
 import { createRandomUrn } from "../Util";
 import { DC, ODRL, RDF, SOTW } from "../Vocabularies";
-import { Constraint, makeRDFConstraint } from "../policy/PolicyUtil";
+import { Constraint, constraintToQuads } from "../policy/PolicyUtil";
 const { namedNode, quad, literal } = DataFactory;
 /**
  * Represents an ODRL-Evaluator-style Request.
@@ -95,7 +95,7 @@ export function makeRDFRequest(request: Request, permissionID?: string): Quad[] 
         const constraintNode = namedNode(c.identifier);
         quads.push(quad(permissionNode, SOTW.terms.context, constraintNode));
 
-        quads.push(...makeRDFConstraint(c))
+        quads.push(...constraintToQuads(c))
   });
   return quads
 }
