@@ -1,6 +1,20 @@
 # ODRL Evaluator release notes
 
-## [0.5.1](https://github.com/SolidLabResearch/ODRL-Evaluator/compare/v0.5.0...v0.5.2) (2025-12-02)
+
+## [0.6.0](https://github.com/SolidLabResearch/ODRL-Evaluator/compare/v0.5.1...v0.6.0) (2026-01-21)
+
+
+### Features
+
+* add eyeling as a reasoner ([9b3ce19](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/9b3ce19a65bdd48d0f434d8d4333488795bc0498))
+* add implementation and test for core parsing/serialization for policy, request and report ([0f812d2](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/0f812d28277d7fa102f791738731f00333a74991))
+
+
+### Fixes
+
+* add proper index.core.ts ([d6689f3](https://github.com/SolidLabResearch/ODRL-Evaluator/commit/d6689f34705bb44fdb97f9694f0db780cfc0e5aa))
+
+## [0.5.1](https://github.com/SolidLabResearch/ODRL-Evaluator/compare/v0.5.0...v0.5.1) (2025-12-02)
 
 
 ### Features

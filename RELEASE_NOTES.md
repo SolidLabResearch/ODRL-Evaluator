@@ -1,5 +1,19 @@
 # ODRL Evaluator
 
+## 0.6.0
+
+### New Features
+
+* Addition of tests for the policy, request and compliance report utils
+  * `test/unit/util/report`
+  * `test/unit/util/request`
+  * `test/unit/util/policy`
+* Addition of a new EYE reasoner (`eyeling`) as an alternative for EyeJS
+  * `src/reasoner/EyelingReasoner.ts`
+  * Added a demo showcasing how the Reasoner can be used: `demo/test-eyeling.ts`
+  * Change to the :getUUID builtin `src/rules/built-ins.n3`
+    * required to support both eyeling and EyeJS
+
 ## 0.5.1 
 
 ### New Features
