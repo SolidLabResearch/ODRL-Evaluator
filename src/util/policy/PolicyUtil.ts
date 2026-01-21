@@ -120,7 +120,7 @@ export function createPolicy(input: {
 /**
  * Serialize a Policy into RDF quads.
  */
-export function makeRDFPolicy(policy: Policy): Quad[] {
+export function policyToQuads(policy: Policy): Quad[] {
     const quads: Quad[] = [];
     const policyNode = namedNode(policy.identifier);
 
@@ -166,14 +166,14 @@ export function makeRDFPolicy(policy: Policy): Quad[] {
             const constraintNode = namedNode(c.identifier);
             quads.push(quad(ruleNode, ODRL.terms.constraint, constraintNode));
 
-            quads.push(...makeRDFConstraint(c))
+            quads.push(...constraintToQuads(c))
         });
     });
 
     return quads;
 }
 
-export function makeRDFConstraint(constraint: Constraint) {
+export function constraintToQuads(constraint: Constraint) {
     const quads: Quad[] = []
     const constraintNode = namedNode(constraint.identifier);
     quads.push(quad(constraintNode, RDF.terms.type, ODRL.terms.Constraint));

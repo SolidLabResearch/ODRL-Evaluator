@@ -12,4 +12,5 @@ Steps to follow:
 - potentially upgrade dependent repositories
   - ODRL Test Suite at https://github.com/SolidLabResearch/ODRL-Test-Suite
   - FORCE demo at https://github.com/woutslabbinck/ODRL-Evaluator-Demo
-  - User-Access Server at https://github.com/SolidLabResearch/user-managed-access
+  - User-Managed Access Server at https://github.com/SolidLabResearch/user-managed-access
+  - Policy Conflict Resolver at https://github.com/joachimvh/policy-conflict-resolver

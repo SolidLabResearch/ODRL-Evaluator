@@ -4,7 +4,7 @@ import { ODRLEvaluator } from "../../src/evaluator/Evaluate";
 import { ODRLEngineMultipleSteps } from "../../src/evaluator/Engine";
 import { ODRL, REPORT } from "../../src/util/Vocabularies"
 import { blanknodeify } from "../../src/util/RDFUtil"
-import { createPolicy, makeRDFPolicy, Policy } from "../../src/util/policy/PolicyUtil";
+import { createPolicy, policyToQuads, Policy } from "../../src/util/policy/PolicyUtil";
 import { makeRDFRequest, Request } from "../../src/util/request/RequestUtil";
 import { createRandomUrn } from "../../src/util/Util";
 import { write } from "@jeswr/pretty-turtle/dist";
@@ -713,7 +713,7 @@ ex:purpose a dpv:AccountManagement .
                 operator: operator,
                 identifier: constraintID
             })
-            const policyQuads = makeRDFPolicy(policy)
+            const policyQuads = policyToQuads(policy)
 
             request.context.push({
                 leftOperand: leftOperand,
@@ -741,7 +741,7 @@ ex:purpose a dpv:AccountManagement .
                 operator: operator,
                 identifier: constraintID
             })
-            const policyQuads = makeRDFPolicy(policy)
+            const policyQuads = policyToQuads(policy)
 
             request.context.push({
                 leftOperand: leftOperand,
@@ -770,7 +770,7 @@ ex:purpose a dpv:AccountManagement .
                 operator: operator,
                 identifier: constraintID
             })
-            const policyQuads = makeRDFPolicy(policy)
+            const policyQuads = policyToQuads(policy)
 
             request.context.push({
                 leftOperand: leftOperand,
@@ -799,7 +799,7 @@ ex:purpose a dpv:AccountManagement .
                 operator: operator,
                 identifier: constraintID
             })
-            const policyQuads = makeRDFPolicy(policy)
+            const policyQuads = policyToQuads(policy)
 
             request.context.push({
                 leftOperand: ODRL.deliveryChannel,
