@@ -7,12 +7,18 @@
 @prefix report: <https://w3id.org/force/compliance-report#> .
 @prefix temp: <http://example.com/request/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#>.
+@prefix sotw: <https://w3id.org/force/sotw#> .
+
 # Policy report
 {
    ?policy a ?policyType .
    ?policyType list:in ( odrl:Agreement odrl:Set odrl:Policy odrl:Offer ) .
-   ?policyRequest a odrl:Request .
-   temp:currentTime dct:issued ?time .
+
+   # Is there a valid request with time indication
+   ?evaluationRequest a sotw:EvaluationRequest  ;
+      sotw:requestParameter ?requestParam .
+   ?requestParam sotw:describesFeature sotw:TemporalData ;
+      sotw:value ?time .
    ( ?policy ) :getUUID ?urnUuid .
 }
 => 
@@ -20,7 +26,7 @@
    ?urnUuid a report:PolicyReport ;
        dct:created ?time ;
        report:policy ?policy ;
-       report:policyRequest ?policyRequest .
+       report:policyRequest ?evaluationRequest .
 } .
 
 # Permission report (expecting explicit permission type)
@@ -28,9 +34,9 @@
 {
    ?policyReport a report:PolicyReport ;
        report:policy ?policy ;
-       report:policyRequest ?policyRequest .
+       report:policyRequest ?evaluationRequest .
    ?policy odrl:permission ?permission .
-   ?policyRequest odrl:permission ?requestPermission .
+
    ( ?permission ) :getUUID ?urnUuid .
 }
 => 
@@ -39,7 +45,7 @@
    ?urnUuid a report:PermissionReport ;
        report:attemptState report:Attempted ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
+       report:ruleRequest ?evaluationRequest .
 } .
 
 # Prohibition report (expecting explicit prohibition type)
@@ -47,9 +53,9 @@
 {
    ?policyReport a report:PolicyReport ;
        report:policy ?policy ;
-       report:policyRequest ?policyRequest .
+       report:policyRequest ?evaluationRequest .
    ?policy odrl:prohibition ?prohibition .
-   ?policyRequest odrl:permission ?requestProhibition .
+
    ( ?prohibition ) :getUUID ?urnUuid .
 }
 => 
@@ -58,18 +64,17 @@
    ?urnUuid a report:ProhibitionReport ;
        report:attemptState report:Attempted ;
        report:rule ?prohibition ;
-       report:ruleRequest ?requestProhibition .
+       report:ruleRequest ?evaluationRequest .
 } .
 
 # Target report
-# Create target report
+# Create target report from rule report if the ODRL rule has a target
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
+       report:rule ?rule .
 
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
-   ?permission odrl:target ?resource .
+   ?rule odrl:target ?resource .
    
    ( ?resource ) :getUUID ?urnUuid .
 }
@@ -82,15 +87,15 @@
 # Calculate satisfaction state (simple asset)
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:rule ?rule ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?targetReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?targetReport a report:TargetReport .
 
-   ?permission odrl:target ?resource .
-   ?requestPermission odrl:target ?requestedResource .
+   ?rule odrl:target ?resource .
+   ?evaluationRequest sotw:requestedTarget ?requestedResource .
 
    ?resource log:equalTo ?requestedResource .
 
@@ -113,18 +118,18 @@
 # Calculate satisfaction state (asset collection)
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:rule ?rule ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?targetReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?targetReport a report:TargetReport .     
      
-   ?permission odrl:target ?assetCollection .
+   ?rule odrl:target ?assetCollection .
 
    ?assetCollection a odrl:AssetCollection.
 
-   ?requestPermission odrl:target ?resourceInCollection .
+   ?evaluationRequest sotw:requestedTarget ?resourceInCollection .
 
    ?resourceInCollection odrl:partOf ?assetCollection .
 }
@@ -132,12 +137,12 @@
 {
    ?targetReport report:satisfactionState report:Satisfied .
 } .
+
 # Party report
-# Create party report
+# Create party report from rule report if the ODRL rule has an assignee
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
+       report:rule ?permission .
    ?permission odrl:assignee ?party .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
@@ -152,14 +157,14 @@
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?partyReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
    
    ?partyReport a report:PartyReport .
 
    ?permission odrl:assignee ?party .
-   ?requestPermission odrl:assignee ?requestedParty .
+   ?evaluationRequest sotw:requestingParty ?requestedParty .
 
    ?party log:equalTo ?requestedParty .
    
@@ -182,7 +187,7 @@
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?partyReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
    
@@ -192,7 +197,7 @@
 
    ?partyCollection a odrl:PartyCollection.
 
-   ?requestPermission odrl:assignee ?requestedParty .
+   ?evaluationRequest sotw:requestingParty ?requestedParty .
 
    ?requestedParty odrl:partOf ?partyCollection .
 }
@@ -201,12 +206,11 @@
    ?partyReport report:satisfactionState report:Satisfied .
 } .
 
-# Action report -> simple action
-# Create action report
+# Action report 
+# Create action report from rule report if the ODRL rule has an action
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
+       report:rule ?permission  .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?permission odrl:action ?action .
@@ -222,13 +226,13 @@
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?actionReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?actionReport a report:ActionReport .
    ?permission odrl:action ?action .
-   ?requestPermission odrl:action ?requestedAction .
+   ?evaluationRequest sotw:requestedAction ?requestedAction .
 
    ?action log:equalTo ?requestedAction .
 }
@@ -241,13 +245,13 @@
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?actionReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
    ?permission odrl:action ?action .
-   ?requestPermission odrl:action ?requestedAction .
+   ?evaluationRequest sotw:requestedAction ?requestedAction .
 
    ?requestedAction odrl:includedIn ?action .
 } => 
@@ -259,13 +263,13 @@
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?actionReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
    ?permission odrl:action ?action .
-   ?requestPermission odrl:action ?requestedAction .
+   ?evaluationRequest sotw:requestedAction ?requestedAction .
 
    ?requestedAction skos:exactMatch ?action .
 } => 

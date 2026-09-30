@@ -1,6 +1,9 @@
-export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+export const RULES: string[] = [`@prefix : <http://example.org/> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
 @prefix log: <http://www.w3.org/2000/10/swap/log#> .
 @prefix crypto: <http://www.w3.org/2000/10/swap/crypto#> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
 @prefix : <http://example.org/> .
 @prefix math: <http://www.w3.org/2000/10/swap/math#> .
 @prefix dct: <http://purl.org/dc/terms/> .
@@ -19,6 +22,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 @prefix report: <https://w3id.org/force/compliance-report#> .
 @prefix temp: <http://example.com/request/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#>.
+@prefix sotw: <https://w3id.org/force/sotw#> .
 @prefix cc: <http://creativecommons.org/ns#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -560,12 +564,17 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 
 }.
 #######################################################################################################################
+
 # Policy report
 {
    ?policy a ?policyType .
    ?policyType list:in ( odrl:Agreement odrl:Set odrl:Policy odrl:Offer ) .
-   ?policyRequest a odrl:Request .
-   temp:currentTime dct:issued ?time .
+
+   # Is there a valid request with time indication
+   ?evaluationRequest a sotw:EvaluationRequest  ;
+      sotw:requestParameter ?requestParam .
+   ?requestParam sotw:describesFeature sotw:TemporalData ;
+      sotw:value ?time .
    ( ?policy ) :getUUID ?urnUuid .
 }
 => 
@@ -573,7 +582,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?urnUuid a report:PolicyReport ;
        dct:created ?time ;
        report:policy ?policy ;
-       report:policyRequest ?policyRequest .
+       report:policyRequest ?evaluationRequest .
 } .
 
 # Permission report (expecting explicit permission type)
@@ -581,9 +590,9 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 {
    ?policyReport a report:PolicyReport ;
        report:policy ?policy ;
-       report:policyRequest ?policyRequest .
+       report:policyRequest ?evaluationRequest .
    ?policy odrl:permission ?permission .
-   ?policyRequest odrl:permission ?requestPermission .
+
    ( ?permission ) :getUUID ?urnUuid .
 }
 => 
@@ -592,7 +601,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?urnUuid a report:PermissionReport ;
        report:attemptState report:Attempted ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
+       report:ruleRequest ?evaluationRequest .
 } .
 
 # Prohibition report (expecting explicit prohibition type)
@@ -600,9 +609,9 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 {
    ?policyReport a report:PolicyReport ;
        report:policy ?policy ;
-       report:policyRequest ?policyRequest .
+       report:policyRequest ?evaluationRequest .
    ?policy odrl:prohibition ?prohibition .
-   ?policyRequest odrl:permission ?requestProhibition .
+
    ( ?prohibition ) :getUUID ?urnUuid .
 }
 => 
@@ -611,18 +620,17 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?urnUuid a report:ProhibitionReport ;
        report:attemptState report:Attempted ;
        report:rule ?prohibition ;
-       report:ruleRequest ?requestProhibition .
+       report:ruleRequest ?evaluationRequest .
 } .
 
 # Target report
-# Create target report
+# Create target report from rule report if the ODRL rule has a target
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
+       report:rule ?rule .
 
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
-   ?permission odrl:target ?resource .
+   ?rule odrl:target ?resource .
    
    ( ?resource ) :getUUID ?urnUuid .
 }
@@ -635,15 +643,15 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 # Calculate satisfaction state (simple asset)
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:rule ?rule ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?targetReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?targetReport a report:TargetReport .
 
-   ?permission odrl:target ?resource .
-   ?requestPermission odrl:target ?requestedResource .
+   ?rule odrl:target ?resource .
+   ?evaluationRequest sotw:requestedTarget ?requestedResource .
 
    ?resource log:equalTo ?requestedResource .
 
@@ -666,18 +674,18 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 # Calculate satisfaction state (asset collection)
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:rule ?rule ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?targetReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?targetReport a report:TargetReport .     
      
-   ?permission odrl:target ?assetCollection .
+   ?rule odrl:target ?assetCollection .
 
    ?assetCollection a odrl:AssetCollection.
 
-   ?requestPermission odrl:target ?resourceInCollection .
+   ?evaluationRequest sotw:requestedTarget ?resourceInCollection .
 
    ?resourceInCollection odrl:partOf ?assetCollection .
 }
@@ -685,12 +693,12 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 {
    ?targetReport report:satisfactionState report:Satisfied .
 } .
+
 # Party report
-# Create party report
+# Create party report from rule report if the ODRL rule has an assignee
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
+       report:rule ?permission .
    ?permission odrl:assignee ?party .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
@@ -705,14 +713,14 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?partyReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
    
    ?partyReport a report:PartyReport .
 
    ?permission odrl:assignee ?party .
-   ?requestPermission odrl:assignee ?requestedParty .
+   ?evaluationRequest sotw:requestingParty ?requestedParty .
 
    ?party log:equalTo ?requestedParty .
    
@@ -735,7 +743,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?partyReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
    
@@ -745,7 +753,7 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 
    ?partyCollection a odrl:PartyCollection.
 
-   ?requestPermission odrl:assignee ?requestedParty .
+   ?evaluationRequest sotw:requestingParty ?requestedParty .
 
    ?requestedParty odrl:partOf ?partyCollection .
 }
@@ -754,12 +762,11 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
    ?partyReport report:satisfactionState report:Satisfied .
 } .
 
-# Action report -> simple action
-# Create action report
+# Action report 
+# Create action report from rule report if the ODRL rule has an action
 {
    ?ruleReport a ?ruleReportType ;
-       report:rule ?permission ;
-       report:ruleRequest ?requestPermission .
+       report:rule ?permission  .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?permission odrl:action ?action .
@@ -775,13 +782,13 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?actionReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
    ?actionReport a report:ActionReport .
    ?permission odrl:action ?action .
-   ?requestPermission odrl:action ?requestedAction .
+   ?evaluationRequest sotw:requestedAction ?requestedAction .
 
    ?action log:equalTo ?requestedAction .
 }
@@ -794,13 +801,13 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?actionReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
    ?permission odrl:action ?action .
-   ?requestPermission odrl:action ?requestedAction .
+   ?evaluationRequest sotw:requestedAction ?requestedAction .
 
    ?requestedAction odrl:includedIn ?action .
 } => 
@@ -812,13 +819,13 @@ export const RULES: string[] = [`@prefix string: <http://www.w3.org/2000/10/swap
 {
    ?ruleReport a ?ruleReportType ;
        report:rule ?permission ;
-       report:ruleRequest ?requestPermission ;
+       report:ruleRequest ?evaluationRequest ;
        report:premiseReport ?actionReport .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
       
    ?actionReport a report:ActionReport .
    ?permission odrl:action ?action .
-   ?requestPermission odrl:action ?requestedAction .
+   ?evaluationRequest sotw:requestedAction ?requestedAction .
 
    ?requestedAction skos:exactMatch ?action .
 } => 
