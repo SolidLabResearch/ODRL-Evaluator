@@ -17013,7 +17013,7 @@ export const report_testcase_079_delivery_channel_bad = new BasicRepresentation(
 <urn:uuid:d2dc7b00-f159-4c27-aada-6ad8a8f17689> a cr:PermissionReport ;
   cr:attemptState cr:Attempted ;
   cr:rule <urn:uuid:e51a43e4-616f-4f32-906b-2359955228e5> ;
-  cr:ruleRequest <urn:uuid:186be541-5857-4ce3-9f03-1a274f16bf59> ;
+  cr:ruleRequest <urn:uuid:1bafee59-006c-46a3-810c-5d176b4be364> ;
   cr:premiseReport <urn:uuid:0da7a9cf-c953-49a7-b91a-8dba4529a881>, <urn:uuid:f437256d-58cf-471e-8b1d-82ad23d496eb>, <urn:uuid:6096588e-8099-4975-99c9-8f64fc79a68f>, <urn:uuid:cf727800-8f03-49ac-95ef-124ae12803d0> ;
   cr:activationState cr:Inactive .
 
@@ -21178,6 +21178,7 @@ export const policy_23 = new BasicRepresentation(
 <urn:uuid:18a5175e-33e4-4f66-895d-97bcbd4e427b> a odrl:Set ;
   odrl:uid <urn:uuid:18a5175e-33e4-4f66-895d-97bcbd4e427b> ;
   dct:description "ALICE may READ resource X for the purpose of dpv:AccountManagement." ;
+  dct:source <https://github.com/SolidLabResearch/ODRL-Test-Suite/> ;
   odrl:permission <urn:uuid:1c63f3af-7c09-4748-9002-1868f6816b16> .
 
 <urn:uuid:1c63f3af-7c09-4748-9002-1868f6816b16> a odrl:Permission ;
@@ -21207,6 +21208,7 @@ export const policy_24 = new BasicRepresentation(
 <urn:uuid:b791d8a7-8e49-4428-be77-d4bb5aeffc20> a odrl:Set ;
   odrl:uid <urn:uuid:b791d8a7-8e49-4428-be77-d4bb5aeffc20> ;
   dct:description "ALICE may READ resource X for the purpose of dpv:AccountManagement or dpv:DataQualityManagement." ;
+  dct:source <https://github.com/SolidLabResearch/ODRL-Test-Suite/> ;
   odrl:permission <urn:uuid:79b34c79-b550-4ccf-9331-ef83c27f390f> .
 
 <urn:uuid:79b34c79-b550-4ccf-9331-ef83c27f390f> a odrl:Permission ;
@@ -21236,6 +21238,7 @@ export const policy_25 = new BasicRepresentation(
 <urn:uuid:6a1153c1-aca7-496a-aba1-0b2561d4555e> a odrl:Set ;
   odrl:uid <urn:uuid:6a1153c1-aca7-496a-aba1-0b2561d4555e> ;
   dct:description "ALICE may READ resource X for an instance of purpose of dpv:AccountManagement." ;
+  dct:source <https://github.com/SolidLabResearch/ODRL-Test-Suite/> ;
   odrl:permission <urn:uuid:f0ce2b23-d35c-483c-909a-17c986db5e68> .
 
 <urn:uuid:f0ce2b23-d35c-483c-909a-17c986db5e68> a odrl:Permission ;
@@ -21265,6 +21268,7 @@ export const policy_26 = new BasicRepresentation(
 <urn:uuid:5ee1a7dd-ccba-49a4-92e8-6cc375509efd> a odrl:Set ;
   odrl:uid <urn:uuid:5ee1a7dd-ccba-49a4-92e8-6cc375509efd> ;
   dct:description "ALICE may READ resource X if the purpose is not dpv:AccountManagement or dpv:DataQualityManagement." ;
+  dct:source <https://github.com/SolidLabResearch/ODRL-Test-Suite/> ;
   odrl:permission <urn:uuid:8b64ba6c-015b-41cf-9f06-2f942edcf1db> .
 
 <urn:uuid:8b64ba6c-015b-41cf-9f06-2f942edcf1db> a odrl:Permission ;
@@ -21293,6 +21297,7 @@ export const policy_27 = new BasicRepresentation(
 <urn:uuid:0bfcef9d-c0a0-4834-945d-99058b763e5b> a odrl:Set ;
   odrl:uid <urn:uuid:0bfcef9d-c0a0-4834-945d-99058b763e5b> ;
   dct:description "ALICE may READ resource X if the deliveryChannel is podpro.dev/id." ;
+  dct:source <https://github.com/SolidLabResearch/ODRL-Test-Suite/> ;
   odrl:permission <urn:uuid:e51a43e4-616f-4f32-906b-2359955228e5> .
 
 <urn:uuid:e51a43e4-616f-4f32-906b-2359955228e5> a odrl:Permission ;
@@ -21320,6 +21325,7 @@ export const policy_28 = new BasicRepresentation(
 
 <urn:uuid:9c78fffb-81dc-45d0-a6ed-fa016cf480f5> a odrl:Set ;
   dct:description "ALICE may READ or MODIFY resource X." ;
+  dct:source <https://github.com/SolidLabResearch/ODRL-Test-Suite/> ;
   odrl:permission <urn:uuid:5422211b-0456-4fb7-8ab9-deff4dceaaea> .
 
 <urn:uuid:5422211b-0456-4fb7-8ab9-deff4dceaaea> a odrl:Permission ;
@@ -21341,6 +21347,7 @@ export const policy_29 = new BasicRepresentation(
 
 <urn:uuid:e2dac584-cdb6-4160-a1c1-6ef368d19f8d> a odrl:Set ;
   dct:description "ALICE may READ resource X (compact policy)." ;
+  dct:source <https://github.com/SolidLabResearch/ODRL-Test-Suite/> ;
   odrl:action odrl:read ;
   odrl:permission <urn:uuid:dccfa253-1a01-4ed6-926f-1f2f75d4df9d> .
 
@@ -21369,10 +21376,15 @@ export const empty = new BasicRepresentation(
 export const partyMembership = new BasicRepresentation(
     new Parser().parse(`
 @prefix ex: <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix sotw: <https://w3id.org/force/sotw#> .
 
 <urn:uuid:2e6995b1-1b7e-4463-9c18-fde444523fef> a sotw:SotW ;
-  sotw:context ex:partyCollection .
+  sotw:context ex:alice .
+
+ex:alice a foaf:Person ;
+  odrl:partOf ex:partyCollection .
 
     `),
     RepresentationType.StateOfTheWorld,
@@ -21383,10 +21395,13 @@ export const partyMembership = new BasicRepresentation(
 export const assetMembership = new BasicRepresentation(
     new Parser().parse(`
 @prefix ex: <http://example.org/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix sotw: <https://w3id.org/force/sotw#> .
 
 <urn:uuid:f048231b-b932-4248-a47d-8653a390247b> a sotw:SotW ;
-  sotw:context ex:assetCollection .
+  sotw:context ex:x .
+
+ex:x odrl:partOf ex:assetCollection .
 
     `),
     RepresentationType.StateOfTheWorld,
@@ -21397,10 +21412,17 @@ export const assetMembership = new BasicRepresentation(
 export const bothMembership = new BasicRepresentation(
     new Parser().parse(`
 @prefix ex: <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix sotw: <https://w3id.org/force/sotw#> .
 
 <urn:uuid:116a8435-a356-45f5-a20f-a1e593d4a55d> a sotw:SotW ;
-  sotw:context ex:assetCollection, ex:partyCollection .
+  sotw:context ex:alice, ex:x .
+
+ex:alice a foaf:Person ;
+  odrl:partOf ex:partyCollection .
+
+ex:x odrl:partOf ex:assetCollection .
 
     `),
     RepresentationType.StateOfTheWorld,

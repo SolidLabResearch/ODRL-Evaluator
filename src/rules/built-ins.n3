@@ -4,6 +4,7 @@
 @prefix crypto: <http://www.w3.org/2000/10/swap/crypto#> .
 @prefix list: <http://www.w3.org/2000/10/swap/list#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix report: <https://w3id.org/force/compliance-report#> .
 
 # uuid backward rule (component)
 {
@@ -49,4 +50,16 @@
     
     # Combine head and tail strings
     ( ?headStr ?tailStr ) string:concatenation ?result .
+} .
+
+
+# Evaluation request of a premise report, found by walking report:premiseReport links up to the rule report (any depth)
+# NOTE: In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
+{ ?premiseReport :evaluationRequest ?evaluationRequest } <= {
+    ?ruleReport report:ruleRequest ?evaluationRequest ;
+        report:premiseReport ?premiseReport .
+} .
+{ ?premiseReport :evaluationRequest ?evaluationRequest } <= {
+    ?parentReport report:premiseReport ?premiseReport .
+    ?parentReport :evaluationRequest ?evaluationRequest .
 } .

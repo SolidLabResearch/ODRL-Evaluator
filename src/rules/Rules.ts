@@ -4,6 +4,7 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 @prefix crypto: <http://www.w3.org/2000/10/swap/crypto#> .
 @prefix list: <http://www.w3.org/2000/10/swap/list#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix report: <https://w3id.org/force/compliance-report#> .
 @prefix : <http://example.org/> .
 @prefix math: <http://www.w3.org/2000/10/swap/math#> .
 @prefix dct: <http://purl.org/dc/terms/> .
@@ -83,6 +84,18 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
     ( ?headStr ?tailStr ) string:concatenation ?result .
 } .
 
+
+# Evaluation request of a premise report, found by walking report:premiseReport links up to the rule report (any depth)
+# NOTE: In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
+{ ?premiseReport :evaluationRequest ?evaluationRequest } <= {
+    ?ruleReport report:ruleRequest ?evaluationRequest ;
+        report:premiseReport ?premiseReport .
+} .
+{ ?premiseReport :evaluationRequest ?evaluationRequest } <= {
+    ?parentReport report:premiseReport ?premiseReport .
+    ?parentReport :evaluationRequest ?evaluationRequest .
+} .
+
 # Constraint report
 
 # Connect constraint Report to Rule Report
@@ -117,25 +130,21 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 #######################################################################################################################
 # Left Operand Conversion
 
-# odrl:dateTime to xsd:dateTime
+# odrl:dateTime  from the evaluation request's temporal parameter
 # https://www.w3.org/TR/odrl-vocab/#term-dateTime
 {
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest .
 
     ?constraint odrl:leftOperand odrl:dateTime .
 
-    # Datetime is provided by the related evaluation request
     ?evaluationRequest sotw:requestParameter ?requestParam .
     ?requestParam sotw:describesFeature sotw:TemporalData ;
         sotw:value ?time .
 
     # TODO: check whether rightoperand is xsd:dateTime -> Not here; SHACL validation of constraints
-    # Resolve when work in ODRL Validator for the resource track is finished
-
-} => { 
+    # Resolve when work in ODRL Validator for the resource track is finished        
+} => {
     ?premiseReport report:constraintLeftOperand ?time .
 }.
 
@@ -143,10 +152,8 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 # If the purpose is present in the evaluation request 
 # NOTE: currently, this will match any purpose. This behaviour requires a proper fix
 { 
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest . 
 
     ?constraint odrl:leftOperand odrl:purpose .
 
@@ -160,10 +167,8 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 
 # If no purpose is present in the evaluation request
 { 
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest . 
 
     ?constraint odrl:leftOperand odrl:purpose .
 
@@ -186,10 +191,8 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 # If the delivery channel is present in the evaluation request 
 # NOTE: currently, this will match any delivery channel. This behaviour requires a proper fix
 { 
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest . 
 
     ?constraint odrl:leftOperand odrl:deliveryChannel .
 
@@ -203,10 +206,8 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 
 # If no delivery channel is present in the evaluation request
 { 
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest . 
 
     ?constraint odrl:leftOperand odrl:deliveryChannel .
 

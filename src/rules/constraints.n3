@@ -42,25 +42,21 @@
 #######################################################################################################################
 # Left Operand Conversion
 
-# odrl:dateTime to xsd:dateTime
+# odrl:dateTime  from the evaluation request's temporal parameter
 # https://www.w3.org/TR/odrl-vocab/#term-dateTime
 {
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest .
 
     ?constraint odrl:leftOperand odrl:dateTime .
 
-    # Datetime is provided by the related evaluation request
     ?evaluationRequest sotw:requestParameter ?requestParam .
     ?requestParam sotw:describesFeature sotw:TemporalData ;
         sotw:value ?time .
 
     # TODO: check whether rightoperand is xsd:dateTime -> Not here; SHACL validation of constraints
-    # Resolve when work in ODRL Validator for the resource track is finished
-
-} => { 
+    # Resolve when work in ODRL Validator for the resource track is finished        
+} => {
     ?premiseReport report:constraintLeftOperand ?time .
 }.
 
@@ -68,10 +64,8 @@
 # If the purpose is present in the evaluation request 
 # NOTE: currently, this will match any purpose. This behaviour requires a proper fix
 { 
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest . 
 
     ?constraint odrl:leftOperand odrl:purpose .
 
@@ -85,10 +79,8 @@
 
 # If no purpose is present in the evaluation request
 { 
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest . 
 
     ?constraint odrl:leftOperand odrl:purpose .
 
@@ -111,10 +103,8 @@
 # If the delivery channel is present in the evaluation request 
 # NOTE: currently, this will match any delivery channel. This behaviour requires a proper fix
 { 
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest . 
 
     ?constraint odrl:leftOperand odrl:deliveryChannel .
 
@@ -128,10 +118,8 @@
 
 # If no delivery channel is present in the evaluation request
 { 
-    ?ruleReport report:premiseReport ?premiseReport .
-    ?ruleReport report:ruleRequest ?evaluationRequest . 
-    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
-    ?premiseReport report:constraint ?constraint .
+    ?premiseReport report:constraint ?constraint ;
+        :evaluationRequest ?evaluationRequest . 
 
     ?constraint odrl:leftOperand odrl:deliveryChannel .
 
