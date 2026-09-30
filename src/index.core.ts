@@ -1,4 +1,3 @@
-export * from './evaluator/Atomizer'
 export * from './evaluator/DynamicConstraint'
 export * from './evaluator/Engine'
 export * from './evaluator/Evaluate'
@@ -16,6 +15,7 @@ export * from './util/Notation3Util'
 export * from './util/Vocabularies'
 export * from './util/Prefixes'
 
+export * from './util/NormalizationUtil'
 export * from './util/report/ComplianceReportTypes'
 export * from './util/report/ComplianceReportSerialization'
 export * from './util/report/ComplianceReportParsing'

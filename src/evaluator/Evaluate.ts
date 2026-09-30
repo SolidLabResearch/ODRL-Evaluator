@@ -2,7 +2,8 @@ import type { Quad } from '@rdfjs/types';
 import { ODRLEngine, Engine } from './Engine';
 import { RDFValidator, TripleTermValidator, SHACLValidator } from './Validate';
 import { materializePolicy } from './DynamicConstraint';
-import { AtomizedEvaluatedRule, Atomizer } from './Atomizer';
+import { Normalizer } from "odrl-validator/dist/Normalisation";
+import { mergeDerivedRuleReports } from '../util/NormalizationUtil';
 
 export interface Evaluator {
     /**
@@ -63,45 +64,22 @@ export class ODRLEvaluator implements Evaluator {
 
         // policy decomposition must happen to reduce the rules in the policy to atomic rules
         // see ODRL § 2.7 Policy Rule Composition (https://www.w3.org/TR/odrl-model/#composition)
-
         // if there are compact policies -> they must be expanded (also reocmmended by ODRL § 2.7.1 Compact Policy)
+        const normalizer = new Normalizer();
+        const normalizedPolicy = await normalizer.normalise(policy)
 
         // handle dynamic policies
-        const instantiatedPolicies = materializePolicy(policy, state);
+        const instantiatedPolicies = materializePolicy(normalizedPolicy, state);
         // evaluate
         // the evaluation will result into a conformance report
         const evaluation = await this.engine.evaluate([...instantiatedPolicies, ...request, ...state])
 
+        // in case the rules had to be normalized, merge again
+        const mergedEvaluation = mergeDerivedRuleReports(evaluation, normalizedPolicy);
         // TODO: think about when the report can be empty
         // does it always mean there is not enough information?
         // Is there any way to detect the missing information?
 
-        return evaluation;
-    }
-}
-
-/**
- * ODRL Evaluator that deals with § 2.7 Policy Rule Composition (https://www.w3.org/TR/odrl-model/#composition)
- */
-export class CompositeODRLEvaluator extends ODRLEvaluator {
-    constructor(engine = new ODRLEngine()) {
-        super(engine);
-    }
-
-    public async evaluate(policy: Quad[], request: Quad[], state: Quad[]): Promise<Quad[]> {
-        const atomizer = new Atomizer();
-        const atomizedRules = await atomizer.atomizePolicies(policy);
-
-        const atomizedEvaluatedRules: AtomizedEvaluatedRule[] = []
-        for (const policy of atomizedRules) {
-            const report = await super.evaluate(policy.atomizedRuleQuads, request, state);
-            atomizedEvaluatedRules.push({
-                ...policy,
-                policyReportQuads: report
-            });
-        }
-        
-        const report = atomizer.mergeAtomizedRuleReports(atomizedEvaluatedRules);
-        return report;
+        return mergedEvaluation;
     }
 }

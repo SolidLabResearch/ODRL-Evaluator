@@ -48,8 +48,9 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
   ( "test" ) log:skolem ?skolem .
   (?input (?skolem) ) list:append ?newList .
   
-   # 1. Convert input to a stable string
-   ?newList :listToString ?inputString .
+   # 1. Convert input to a stable string (log:skolem also works for blank nodes, log:uri does not)
+   ?newList log:skolem ?skolemIRI .
+   ?skolemIRI log:uri ?inputString .
    
    # 2. Generate a stable hash (works identically in 2026 eyeJS and Eyeling)
     ?inputString  crypto:sha ?hash .

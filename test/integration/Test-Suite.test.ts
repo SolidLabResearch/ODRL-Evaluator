@@ -16,11 +16,6 @@ const excludedTestcases = [
     "testcase_062_big_policy",
     "testcase_063_big_policy_OoO",
     "testcase_064_big_policy_past",
-    // requires proper atomizer
-    "testcase_080_composite_read_happy",
-    "testcase_081_composite_sell_bad",
-    "testcase_082_compact_happy",
-    "testcase_083_compact_bad",
 ];
 
 const engines = [
