@@ -20,7 +20,6 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 @prefix log: <http://www.w3.org/2000/10/swap/log#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix report: <https://w3id.org/force/compliance-report#> .
-@prefix temp: <http://example.com/request/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#>.
 @prefix sotw: <https://w3id.org/force/sotw#> .
 @prefix cc: <http://creativecommons.org/ns#> .
@@ -121,35 +120,117 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 # odrl:dateTime to xsd:dateTime
 # https://www.w3.org/TR/odrl-vocab/#term-dateTime
 {
-    # bind created premiseReport
+    ?ruleReport report:premiseReport ?premiseReport .
+    ?ruleReport report:ruleRequest ?evaluationRequest . 
+    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
     ?premiseReport report:constraint ?constraint .
 
     ?constraint odrl:leftOperand odrl:dateTime .
-    temp:currentTime dct:issued ?dateTime .
+
+    # Datetime is provided by the related evaluation request
+    ?evaluationRequest sotw:requestParameter ?requestParam .
+    ?requestParam sotw:describesFeature sotw:TemporalData ;
+        sotw:value ?time .
 
     # TODO: check whether rightoperand is xsd:dateTime -> Not here; SHACL validation of constraints
+    # Resolve when work in ODRL Validator for the resource track is finished
 
 } => { 
-    ?premiseReport report:constraintLeftOperand ?dateTime .
+    ?premiseReport report:constraintLeftOperand ?time .
 }.
 
-# Other ODRL constraint Left operands
-# Create empty premise report for leftOperands (no leftOperand present in the evaluation request)
+# odrl:purpose
+# If the purpose is present in the evaluation request 
+# NOTE: currently, this will match any purpose. This behaviour requires a proper fix
 { 
-    # acceptable ODRL Left Operands
-    ?leftOperand list:in ( odrl:absolutePosition odrl:absoluteSize odrl:absoluteSpatialPosition odrl:absoluteTemporalPosition odrl:count odrl:delayPeriod odrl:deliveryChannel odrl:device odrl:elapsedTime odrl:event odrl:fileFormat odrl:industry odrl:language odrl:media odrl:meteredTime odrl:payAmount odrl:percentage odrl:product odrl:purpose odrl:recipient odrl:relativePosition odrl:relativeSize odrl:relativeSpatialPosition odrl:relativeTemporalPosition odrl:resolution odrl:spatial odrl:spatialCoordinates odrl:system odrl:systemDevice odrl:timeInterval odrl:unitOfCount odrl:version odrl:virtualLocation ) . 
-    
-    # check for number of leftOperands in evaluation request
+    ?ruleReport report:premiseReport ?premiseReport .
+    ?ruleReport report:ruleRequest ?evaluationRequest . 
+    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
+    ?premiseReport report:constraint ?constraint .
+
+    ?constraint odrl:leftOperand odrl:purpose .
+
+    # Purpose is provided by the related evaluation request (though this is optional)
+    ?evaluationRequest sotw:requestParameter ?requestParam .
+    ?requestParam sotw:describesFeature sotw:Purpose ;
+        sotw:value ?purpose .
+} => {
+    ?premiseReport report:constraintLeftOperand ?purpose .
+}.
+
+# If no purpose is present in the evaluation request
+{ 
+    ?ruleReport report:premiseReport ?premiseReport .
+    ?ruleReport report:ruleRequest ?evaluationRequest . 
+    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
+    ?premiseReport report:constraint ?constraint .
+
+    ?constraint odrl:leftOperand odrl:purpose .
+
+    # Purpose is provided by the related evaluation request (though this is optional)
     (
         ?template
         {
-            ?requestPermission sotw:context ?requestContextConstraint .
-            ?requestContextConstraint odrl:leftOperand ?leftOperand .        
+            ?evaluationRequest sotw:requestParameter ?requestParam .
+            ?requestParam sotw:describesFeature sotw:Purpose .
         }
         ?L
     ) log:collectAllIn ?SCOPE .
-    # number of leftOperands in evaluation request is 0
+    # number of leftOperands in evaluation request is 1
     ?L list:length 0 .
+} => {
+    ?premiseReport report:constraintLeftOperand "" . #TODO: do we need a default null left operand value?
+}.
+
+# odrl:deliveryChannel
+# If the delivery channel is present in the evaluation request 
+# NOTE: currently, this will match any delivery channel. This behaviour requires a proper fix
+{ 
+    ?ruleReport report:premiseReport ?premiseReport .
+    ?ruleReport report:ruleRequest ?evaluationRequest . 
+    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
+    ?premiseReport report:constraint ?constraint .
+
+    ?constraint odrl:leftOperand odrl:deliveryChannel .
+
+    # A delivery channel is provided by the related evaluation request (though this is optional)
+    ?evaluationRequest sotw:requestParameter ?requestParam .
+    ?requestParam sotw:describesFeature sotw:DeliveryChannel ;
+        sotw:value ?channel .
+} => {
+    ?premiseReport report:constraintLeftOperand ?channel .
+}.
+
+# If no delivery channel is present in the evaluation request
+{ 
+    ?ruleReport report:premiseReport ?premiseReport .
+    ?ruleReport report:ruleRequest ?evaluationRequest . 
+    # In the next iteration, the evaluation request will need to be retrieved from the policy. Also the policy report does contain this same timestamp
+    ?premiseReport report:constraint ?constraint .
+
+    ?constraint odrl:leftOperand odrl:deliveryChannel .
+
+    # Purpose is provided by the related evaluation request (though this is optional)
+    (
+        ?template
+        {
+            ?evaluationRequest sotw:requestParameter ?requestParam .
+            ?requestParam sotw:describesFeature sotw:DeliveryChannel .
+        }
+        ?L
+    ) log:collectAllIn ?SCOPE .
+    # number of leftOperands in evaluation request is 1
+    ?L list:length 0 .
+} => {
+    ?premiseReport report:constraintLeftOperand "" . #TODO: do we need a default null left operand value?
+}.
+
+# Other ODRL constraint Left operands
+# Create empty premise report for other odrl:leftOperands (no leftOperand present in the evaluation request)
+{ 
+    # acceptable ODRL Left Operands
+    ?leftOperand list:in ( odrl:absolutePosition odrl:absoluteSize odrl:absoluteSpatialPosition odrl:absoluteTemporalPosition odrl:count odrl:delayPeriod odrl:device odrl:elapsedTime odrl:event odrl:fileFormat odrl:industry odrl:language odrl:media odrl:meteredTime odrl:payAmount odrl:percentage odrl:product odrl:recipient odrl:relativePosition odrl:relativeSize odrl:relativeSpatialPosition odrl:relativeTemporalPosition odrl:resolution odrl:spatial odrl:spatialCoordinates odrl:system odrl:systemDevice odrl:timeInterval odrl:unitOfCount odrl:version odrl:virtualLocation ) . 
+
 
     # a rule with a leftOperand constraint
     _:a odrl:constraint ?constraint .
@@ -160,39 +241,6 @@ export const RULES: string[] = [`@prefix : <http://example.org/> .
 } => {
     ?premiseReport report:constraintLeftOperand "" . #TODO: do we need a default null left operand value?
 }.
-
-# Create empty premise report for leftOperands (one present in the evaluation request)
-{ 
-    # acceptable ODRL Left Operands
-    ?leftOperand list:in ( odrl:absolutePosition odrl:absoluteSize odrl:absoluteSpatialPosition odrl:absoluteTemporalPosition odrl:count odrl:delayPeriod odrl:deliveryChannel odrl:device odrl:elapsedTime odrl:event odrl:fileFormat odrl:industry odrl:language odrl:media odrl:meteredTime odrl:payAmount odrl:percentage odrl:product odrl:purpose odrl:recipient odrl:relativePosition odrl:relativeSize odrl:relativeSpatialPosition odrl:relativeTemporalPosition odrl:resolution odrl:spatial odrl:spatialCoordinates odrl:system odrl:systemDevice odrl:timeInterval odrl:unitOfCount odrl:version odrl:virtualLocation ) . 
-    
-
-    ?requestPermission sotw:context ?requestContextConstraint .
-    ?requestContextConstraint odrl:leftOperand ?leftOperand .
-    ?requestContextConstraint odrl:rightOperand ?requestedPurpose .
-
-    # check for number of leftOperands in evaluation request
-    (
-        ?template
-        {
-            ?requestPermission sotw:context ?requestContextConstraint .
-            ?requestContextConstraint odrl:leftOperand ?leftOperand .
-        }
-        ?L
-    ) log:collectAllIn ?SCOPE .
-    # number of leftOperands in evaluation request is 1
-    ?L list:length 1 .
-
-    # a rule with a purpose constraint
-    _:a odrl:constraint ?constraint .
-    ?constraint odrl:leftOperand ?leftOperand .
-    
-    # created premiseReport
-    ?premiseReport report:constraint ?constraint .
-} => {
-    ?premiseReport report:constraintLeftOperand ?requestedPurpose . 
-}.
-
 
 #######################################################################################################################
 # Comparing the operators using the different odrl operators
@@ -2709,7 +2757,7 @@ odrl:extract odrl:includedIn odrl:use.`, `@prefix : <http://example.org/> .
    ?ruleReport a ?ruleReportType ;
        report:attemptState report:Attempted ;
        report:rule ?rule ;
-       report:ruleRequest ?requestPermission .
+       report:ruleRequest ?evaluationRequest .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
     # check for number of constraint reports
@@ -2742,7 +2790,7 @@ odrl:extract odrl:includedIn odrl:use.`, `@prefix : <http://example.org/> .
    ?ruleReport a ?ruleReportType ;
        report:attemptState report:Attempted ;
        report:rule ?rule ;
-       report:ruleRequest ?requestPermission .
+       report:ruleRequest ?evaluationRequest .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
     # check for number of constraint reports

@@ -8,7 +8,7 @@
    ?ruleReport a ?ruleReportType ;
        report:attemptState report:Attempted ;
        report:rule ?rule ;
-       report:ruleRequest ?requestPermission .
+       report:ruleRequest ?evaluationRequest .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
     # check for number of constraint reports
@@ -41,7 +41,7 @@
    ?ruleReport a ?ruleReportType ;
        report:attemptState report:Attempted ;
        report:rule ?rule ;
-       report:ruleRequest ?requestPermission .
+       report:ruleRequest ?evaluationRequest .
    ?ruleReportType list:in (report:PermissionReport report:RuleReport report:ProhibitionReport) .
 
     # check for number of constraint reports
